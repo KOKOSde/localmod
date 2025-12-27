@@ -1,141 +1,150 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 380">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420">
   <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#60a5fa"/>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap');
+      .txt-ui { font-family: 'Inter', system-ui, sans-serif; }
+      .txt-mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+    </style>
+
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+    
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="0.5" stroke-opacity="0.3"/>
+    </pattern>
+
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#60a5fa" />
     </marker>
-    <marker id="arrowSmall" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
-      <polygon points="0 0, 6 2.5, 0 5" fill="#475569"/>
+    <marker id="arrowGray" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#64748b" />
     </marker>
-    <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1e3a8a"/>
-      <stop offset="100%" style="stop-color:#312e81"/>
-    </linearGradient>
   </defs>
+
+  <rect width="900" height="420" fill="#0f172a"/>
+  <rect width="900" height="420" fill="url(#grid)"/>
   
-  <!-- Background -->
-  <rect width="850" height="380" fill="#0f172a"/>
+  <rect x="180" y="30" width="540" height="240" rx="16" fill="#1e293b" fill-opacity="0.6" stroke="#3b82f6" stroke-width="1" stroke-opacity="0.3" filter="url(#shadow)"/>
   
-  <!-- ==================== MAIN FLOW ==================== -->
-  
-  <!-- User Content Box -->
-  <rect x="20" y="70" width="120" height="90" rx="12" fill="#1e293b" stroke="#334155" stroke-width="2"/>
-  <text x="80" y="100" text-anchor="middle" fill="#f1f5f9" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600">User Content</text>
-  <rect x="35" y="110" width="90" height="38" rx="6" fill="#334155"/>
-  <text x="80" y="128" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="8">"any text input"</text>
-  <text x="80" y="140" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="8">"messages, etc"</text>
-  
-  <!-- Arrow to LocalMod -->
-  <path d="M 150 115 L 190 115" stroke="#60a5fa" stroke-width="2" marker-end="url(#arrow)"/>
-  
-  <!-- LocalMod Box -->
-  <rect x="200" y="20" width="440" height="200" rx="16" fill="url(#mainGrad)" stroke="#3b82f6" stroke-width="2"/>
-  
-  <!-- Docker icon + Title -->
-  <g transform="translate(220, 38)">
-    <rect x="0" y="8" width="18" height="12" rx="2" fill="#60a5fa"/>
-    <rect x="2" y="2" width="3" height="3" rx="1" fill="#60a5fa"/>
-    <rect x="7" y="2" width="3" height="3" rx="1" fill="#60a5fa"/>
-    <rect x="12" y="2" width="3" height="3" rx="1" fill="#60a5fa"/>
-    <rect x="7" y="-2" width="3" height="3" rx="1" fill="#60a5fa"/>
+  <path d="M 180 76 L 720 76" stroke="#334155" stroke-width="1"/>
+  <g transform="translate(200, 54)">
+    <rect x="0" y="0" width="24" height="24" rx="6" fill="#3b82f6" fill-opacity="0.2"/>
+    <path d="M 6 12 L 10 16 L 18 8" stroke="#60a5fa" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="34" y="6" class="txt-ui" font-weight="700" font-size="16" fill="#f8fafc" alignment-baseline="hanging">LocalMod Core</text>
+    <text x="34" y="24" class="txt-ui" font-weight="400" font-size="11" fill="#94a3b8" alignment-baseline="hanging">v2.4 • Offline Environment</text>
   </g>
-  <text x="250" y="52" fill="#f8fafc" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700">LocalMod</text>
-  <text x="340" y="52" fill="#60a5fa" font-family="system-ui, -apple-system, sans-serif" font-size="10">100% Offline</text>
+  <rect x="630" y="48" width="70" height="20" rx="10" fill="#22c55e" fill-opacity="0.1" stroke="#22c55e" stroke-width="1" stroke-opacity="0.3"/>
+  <text x="665" y="62" text-anchor="middle" class="txt-ui" font-size="10" font-weight="600" fill="#4ade80">● Active</text>
+
+  <g transform="translate(30, 90)">
+    <rect width="110" height="80" rx="8" fill="#1e293b" stroke="#475569" stroke-width="1" filter="url(#shadow)"/>
+    <text x="55" y="25" text-anchor="middle" class="txt-ui" font-size="12" font-weight="600" fill="#e2e8f0">User Input</text>
+    <rect x="10" y="35" width="90" height="35" rx="4" fill="#0f172a"/>
+    <text x="18" y="52" class="txt-mono" font-size="9" fill="#94a3b8">"Sample text</text>
+    <text x="18" y="64" class="txt-mono" font-size="9" fill="#94a3b8">payload..."</text>
+  </g>
+
+  <line x1="140" y1="130" x2="170" y2="130" stroke="#60a5fa" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <g transform="translate(200, 95)">
+    <g id="cards">
+        <g transform="translate(0,0)">
+            <rect width="90" height="60" rx="6" fill="#7c3aed" fill-opacity="0.1" stroke="#7c3aed" stroke-width="1" stroke-opacity="0.5"/>
+            <text x="10" y="20" class="txt-ui" font-size="11" font-weight="600" fill="#d8b4fe">Toxicity</text>
+            <text x="10" y="35" class="txt-mono" font-size="8" fill="#a78bfa">distilbert</text>
+            <circle cx="78" cy="12" r="3" fill="#7c3aed"/>
+        </g>
+        <g transform="translate(100,0)">
+            <rect width="90" height="60" rx="6" fill="#06b6d4" fill-opacity="0.1" stroke="#06b6d4" stroke-width="1" stroke-opacity="0.5"/>
+            <text x="10" y="20" class="txt-ui" font-size="11" font-weight="600" fill="#67e8f9">PII Data</text>
+            <text x="10" y="35" class="txt-mono" font-size="8" fill="#22d3ee">regex/ner</text>
+            <circle cx="78" cy="12" r="3" fill="#06b6d4"/>
+        </g>
+        <g transform="translate(200,0)">
+            <rect width="90" height="60" rx="6" fill="#ef4444" fill-opacity="0.1" stroke="#ef4444" stroke-width="1" stroke-opacity="0.5"/>
+            <text x="10" y="20" class="txt-ui" font-size="11" font-weight="600" fill="#fca5a5">Injection</text>
+            <text x="10" y="35" class="txt-mono" font-size="8" fill="#f87171">deberta-v3</text>
+            <circle cx="78" cy="12" r="3" fill="#ef4444"/>
+        </g>
+        <g transform="translate(300,0)">
+            <rect width="90" height="60" rx="6" fill="#eab308" fill-opacity="0.1" stroke="#eab308" stroke-width="1" stroke-opacity="0.5"/>
+            <text x="10" y="20" class="txt-ui" font-size="11" font-weight="600" fill="#fde047">Spam</text>
+            <text x="10" y="35" class="txt-mono" font-size="8" fill="#facc15">bert-tiny</text>
+            <circle cx="78" cy="12" r="3" fill="#eab308"/>
+        </g>
+        <g transform="translate(400,0)">
+            <rect width="90" height="60" rx="6" fill="#db2777" fill-opacity="0.1" stroke="#db2777" stroke-width="1" stroke-opacity="0.5"/>
+            <text x="10" y="20" class="txt-ui" font-size="11" font-weight="600" fill="#f9a8d4">NSFW</text>
+            <text x="10" y="35" class="txt-mono" font-size="8" fill="#f472b6">img/text-clf</text>
+            <circle cx="78" cy="12" r="3" fill="#db2777"/>
+        </g>
+    </g>
+  </g>
+
+  <path d="M 245 155 L 245 180 L 450 180" stroke="#475569" stroke-width="1.5" fill="none" stroke-dasharray="3,3"/>
+  <path d="M 345 155 L 345 170 L 450 170" stroke="#475569" stroke-width="1.5" fill="none" stroke-dasharray="3,3"/>
+  <path d="M 445 155 L 445 180" stroke="#475569" stroke-width="1.5" fill="none" stroke-dasharray="3,3" marker-end="url(#arrowGray)"/>
+  <path d="M 545 155 L 545 170 L 450 170" stroke="#475569" stroke-width="1.5" fill="none" stroke-dasharray="3,3"/>
+  <path d="M 645 155 L 645 180 L 450 180" stroke="#475569" stroke-width="1.5" fill="none" stroke-dasharray="3,3"/>
+
+  <circle cx="445" cy="205" r="16" fill="#0f172a" stroke="#60a5fa" stroke-width="2"/>
+  <path d="M 439 205 L 445 211 L 453 199" stroke="#60a5fa" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="330" y="205" width="70" height="24" rx="12" fill="#059669" fill-opacity="0.2" stroke="#059669"/>
+  <text x="365" y="221" text-anchor="middle" class="txt-ui" font-size="11" font-weight="600" fill="#34d399">✓ Safe</text>
+
+  <rect x="490" y="205" width="80" height="24" rx="12" fill="#dc2626" fill-opacity="0.2" stroke="#dc2626"/>
+  <text x="530" y="221" text-anchor="middle" class="txt-ui" font-size="11" font-weight="600" fill="#f87171">⚠ Flagged</text>
+
+  <line x1="720" y1="130" x2="750" y2="130" stroke="#60a5fa" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <g transform="translate(760, 90)">
+    <rect width="120" height="80" rx="8" fill="#1e293b" stroke="#475569" stroke-width="1" filter="url(#shadow)"/>
+    <text x="60" y="25" text-anchor="middle" class="txt-ui" font-size="12" font-weight="600" fill="#e2e8f0">JSON Response</text>
+    
+    <rect x="10" y="35" width="100" height="35" rx="4" fill="#0f172a"/>
+    <text x="16" y="50" class="txt-mono" font-size="9" fill="#22d3ee">"flagged": <tspan fill="#f472b6">false</tspan>,</text>
+    <text x="16" y="62" class="txt-mono" font-size="9" fill="#22d3ee">"score": <tspan fill="#fcd34d">0.98</tspan></text>
+  </g>
+
+  <line x1="50" y1="310" x2="850" y2="310" stroke="#334155" stroke-width="1"/>
   
-  <!-- 5 Classifier Cards -->
+  <g transform="translate(0, 340)">
+     <g transform="translate(120, 0)">
+       <text x="0" y="0" text-anchor="middle" class="txt-ui" font-size="22" font-weight="700" fill="#60a5fa">&lt;100ms</text>
+       <text x="0" y="20" text-anchor="middle" class="txt-ui" font-size="11" fill="#94a3b8">End-to-end Latency</text>
+     </g>
+     
+     <line x1="225" y1="-10" x2="225" y2="30" stroke="#334155" stroke-width="1"/>
+
+     <g transform="translate(330, 0)">
+       <text x="0" y="0" text-anchor="middle" class="txt-ui" font-size="22" font-weight="700" fill="#60a5fa">1 Container</text>
+       <text x="0" y="20" text-anchor="middle" class="txt-ui" font-size="11" fill="#94a3b8">Docker / Podman</text>
+     </g>
+
+     <line x1="435" y1="-10" x2="435" y2="30" stroke="#334155" stroke-width="1"/>
+
+     <g transform="translate(540, 0)">
+       <text x="0" y="0" text-anchor="middle" class="txt-ui" font-size="22" font-weight="700" fill="#60a5fa">0 API Keys</text>
+       <text x="0" y="20" text-anchor="middle" class="txt-ui" font-size="11" fill="#94a3b8">Air-gapped Safe</text>
+     </g>
+
+     <line x1="645" y1="-10" x2="645" y2="30" stroke="#334155" stroke-width="1"/>
+
+     <g transform="translate(750, 0)">
+       <text x="0" y="0" text-anchor="middle" class="txt-ui" font-size="22" font-weight="700" fill="#60a5fa">&lt;2GB</text>
+       <text x="0" y="20" text-anchor="middle" class="txt-ui" font-size="11" fill="#94a3b8">Memory Footprint</text>
+     </g>
+  </g>
   
-  <!-- Toxicity -->
-  <rect x="215" y="68" width="75" height="58" rx="8" fill="#7c3aed"/>
-  <text x="252" y="86" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="10" font-weight="600">🔥 Toxicity</text>
-  <text x="252" y="100" text-anchor="middle" fill="#c4b5fd" font-family="system-ui" font-size="8">Hate speech</text>
-  <text x="252" y="110" text-anchor="middle" fill="#c4b5fd" font-family="system-ui" font-size="8">Harassment</text>
-  <text x="252" y="122" text-anchor="middle" fill="#e9d5ff" font-family="monospace" font-size="7" font-weight="700">🤖 DistilBERT</text>
-  
-  <!-- PII -->
-  <rect x="298" y="68" width="75" height="58" rx="8" fill="#0891b2"/>
-  <text x="335" y="86" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="10" font-weight="600">🔒 PII</text>
-  <text x="335" y="100" text-anchor="middle" fill="#a5f3fc" font-family="system-ui" font-size="8">Emails, SSN</text>
-  <text x="335" y="110" text-anchor="middle" fill="#a5f3fc" font-family="system-ui" font-size="8">Credit cards</text>
-  <text x="335" y="122" text-anchor="middle" fill="#cffafe" font-family="monospace" font-size="7" font-weight="700">🤖 Regex</text>
-  
-  <!-- Injection -->
-  <rect x="381" y="68" width="75" height="58" rx="8" fill="#dc2626"/>
-  <text x="418" y="86" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="10" font-weight="600">⚡ Injection</text>
-  <text x="418" y="100" text-anchor="middle" fill="#fecaca" font-family="system-ui" font-size="8">Jailbreaks</text>
-  <text x="418" y="110" text-anchor="middle" fill="#fecaca" font-family="system-ui" font-size="8">Prompt attacks</text>
-  <text x="418" y="122" text-anchor="middle" fill="#fef2f2" font-family="monospace" font-size="7" font-weight="700">🤖 DeBERTa</text>
-  
-  <!-- Spam -->
-  <rect x="464" y="68" width="75" height="58" rx="8" fill="#ca8a04"/>
-  <text x="501" y="86" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="10" font-weight="600">📧 Spam</text>
-  <text x="501" y="100" text-anchor="middle" fill="#fef08a" font-family="system-ui" font-size="8">Scams</text>
-  <text x="501" y="110" text-anchor="middle" fill="#fef08a" font-family="system-ui" font-size="8">Promotions</text>
-  <text x="501" y="122" text-anchor="middle" fill="#fefce8" font-family="monospace" font-size="7" font-weight="700">🤖 BERT-tiny</text>
-  
-  <!-- NSFW -->
-  <rect x="547" y="68" width="75" height="58" rx="8" fill="#be185d"/>
-  <text x="584" y="86" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="10" font-weight="600">🔞 NSFW</text>
-  <text x="584" y="100" text-anchor="middle" fill="#fbcfe8" font-family="system-ui" font-size="8">Adult content</text>
-  <text x="584" y="110" text-anchor="middle" fill="#fbcfe8" font-family="system-ui" font-size="8">Explicit text</text>
-  <text x="584" y="122" text-anchor="middle" fill="#fdf2f8" font-family="monospace" font-size="7" font-weight="700">🤖 NSFW-clf</text>
-  
-  <!-- Converging lines to decision point -->
-  <path d="M 252 126 L 252 145 Q 252 155 262 160 L 400 175" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrowSmall)"/>
-  <path d="M 335 126 L 335 150 Q 335 160 345 163 L 400 175" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrowSmall)"/>
-  <path d="M 418 126 L 418 175" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrowSmall)"/>
-  <path d="M 501 126 L 501 150 Q 501 160 491 163 L 436 175" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrowSmall)"/>
-  <path d="M 584 126 L 584 145 Q 584 155 574 160 L 436 175" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrowSmall)"/>
-  
-  <!-- Decision diamond/circle -->
-  <circle cx="418" cy="185" r="18" fill="#1e293b" stroke="#60a5fa" stroke-width="2"/>
-  <text x="418" y="190" text-anchor="middle" fill="#60a5fa" font-family="system-ui" font-size="12" font-weight="700">?</text>
-  
-  <!-- Output from decision -->
-  <path d="M 400 185 L 280 185 L 280 200" stroke="#475569" stroke-width="1.5" fill="none"/>
-  <path d="M 436 185 L 556 185 L 556 200" stroke="#475569" stroke-width="1.5" fill="none"/>
-  
-  <!-- Safe result -->
-  <rect x="240" y="200" width="80" height="28" rx="14" fill="#059669"/>
-  <text x="280" y="219" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="12" font-weight="600">✓ Safe</text>
-  
-  <!-- Flagged result -->
-  <rect x="516" y="200" width="80" height="28" rx="14" fill="#dc2626"/>
-  <text x="556" y="219" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="12" font-weight="600">⚠ Flagged</text>
-  
-  <!-- Labels -->
-  <text x="280" y="195" text-anchor="middle" fill="#4ade80" font-family="system-ui" font-size="8">if none triggered</text>
-  <text x="556" y="195" text-anchor="middle" fill="#f87171" font-family="system-ui" font-size="8">if any triggered</text>
-  
-  <!-- Arrow to Response -->
-  <path d="M 650 115 L 690 115" stroke="#60a5fa" stroke-width="2" marker-end="url(#arrow)"/>
-  
-  <!-- Response Box -->
-  <rect x="700" y="70" width="130" height="90" rx="12" fill="#1e293b" stroke="#334155" stroke-width="2"/>
-  <text x="765" y="95" text-anchor="middle" fill="#f1f5f9" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600">JSON Response</text>
-  <rect x="712" y="105" width="106" height="45" rx="6" fill="#334155"/>
-  <text x="720" y="118" fill="#4ade80" font-family="monospace" font-size="8">{"flagged": false,</text>
-  <text x="720" y="130" fill="#4ade80" font-family="monospace" font-size="8"> "confidence": 0.98,</text>
-  <text x="720" y="142" fill="#4ade80" font-family="monospace" font-size="8"> "time_ms": 42}</text>
-  
-  <!-- ==================== STATS ROW ==================== -->
-  
-  <line x1="40" y1="265" x2="810" y2="265" stroke="#334155" stroke-width="1"/>
-  
-  <text x="110" y="300" text-anchor="middle" fill="#60a5fa" font-family="system-ui" font-size="20" font-weight="700">&lt;100ms</text>
-  <text x="110" y="320" text-anchor="middle" fill="#94a3b8" font-family="system-ui" font-size="10">CPU latency</text>
-  
-  <text x="270" y="300" text-anchor="middle" fill="#60a5fa" font-family="system-ui" font-size="20" font-weight="700">&lt;30ms</text>
-  <text x="270" y="320" text-anchor="middle" fill="#94a3b8" font-family="system-ui" font-size="10">GPU latency</text>
-  
-  <text x="425" y="300" text-anchor="middle" fill="#60a5fa" font-family="system-ui" font-size="20" font-weight="700">1 Docker</text>
-  <text x="425" y="320" text-anchor="middle" fill="#94a3b8" font-family="system-ui" font-size="10">Self-contained</text>
-  
-  <text x="580" y="300" text-anchor="middle" fill="#60a5fa" font-family="system-ui" font-size="20" font-weight="700">0 API Keys</text>
-  <text x="580" y="320" text-anchor="middle" fill="#94a3b8" font-family="system-ui" font-size="10">Fully offline</text>
-  
-  <text x="735" y="300" text-anchor="middle" fill="#60a5fa" font-family="system-ui" font-size="20" font-weight="700">&lt;2GB</text>
-  <text x="735" y="320" text-anchor="middle" fill="#94a3b8" font-family="system-ui" font-size="10">RAM usage</text>
-  
-  <!-- Tagline -->
-  <text x="425" y="360" text-anchor="middle" fill="#475569" font-family="system-ui" font-size="11" font-style="italic">Self-hosted content safety for teams who can't send data to the cloud</text>
-  
+  <text x="450" y="400" text-anchor="middle" class="txt-ui" font-size="11" font-style="italic" fill="#64748b">Enterprise-grade content safety, running entirely on your infrastructure.</text>
 </svg>
