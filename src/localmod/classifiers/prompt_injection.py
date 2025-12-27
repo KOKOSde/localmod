@@ -64,7 +64,9 @@ class PromptInjectionDetector(BaseClassifier):
     }
     
     # ML model for semantic detection
-    MODEL_NAME = "protectai/deberta-v3-base-prompt-injection-v2"
+    # deepset model has pytorch format compatible with older transformers
+    MODEL_NAME = "deepset/deberta-v3-base-injection"
+    # Alternative: "protectai/deberta-v3-base-prompt-injection-v2" (safetensors, needs newer transformers)
 
     def __init__(
         self,

@@ -16,11 +16,12 @@ import sys
 import os
 
 # Model registry - maps classifier names to their HuggingFace model IDs
+# Updated to use better-performing models
 MODELS = {
-    "toxicity": "martin-ha/toxic-comment-model",
-    "prompt_injection": "protectai/deberta-v3-base-prompt-injection-v2", 
-    "spam": "mrm8488/bert-tiny-finetuned-sms-spam-detection",
-    "nsfw": "michellejieli/NSFW_text_classifier",
+    "toxicity": "unitary/toxic-bert",  # Multi-label, better accuracy
+    "prompt_injection": "deepset/deberta-v3-base-injection",  # pytorch format
+    "spam": "mshenoda/roberta-spam",  # Better general spam detection
+    "nsfw": "michellejieli/NSFW_text_classifier",  # Has some issues with "puppies"
     # "pii" doesn't need a model - it uses regex patterns
 }
 

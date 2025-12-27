@@ -19,7 +19,9 @@ class SpamClassifier(BaseClassifier):
     name = "spam"
     version = "1.0.0"
     
-    MODEL_NAME = "mrm8488/bert-tiny-finetuned-sms-spam-detection"
+    # Better spam model - mshenoda/roberta-spam is more accurate for general spam
+    MODEL_NAME = "mshenoda/roberta-spam"
+    # Alternative: "mrm8488/bert-tiny-finetuned-sms-spam-detection" (smaller, SMS-focused)
     
     # Spam indicators (heuristics)
     SPAM_PATTERNS: Dict[str, str] = {

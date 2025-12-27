@@ -20,9 +20,10 @@ class ToxicityClassifier(BaseClassifier):
     version = "1.0.0"
     
     # Model options (in order of preference)
+    # unitary/toxic-bert is more accurate for general toxicity detection
     MODEL_OPTIONS = [
-        "martin-ha/toxic-comment-model",
-        "unitary/toxic-bert",
+        "unitary/toxic-bert",  # Multi-label, better accuracy
+        "martin-ha/toxic-comment-model",  # Binary, faster but less accurate
         "s-nlp/roberta_toxicity_classifier",
     ]
     
@@ -77,15 +78,17 @@ class ToxicityClassifier(BaseClassifier):
         
         # Inference
         outputs = self._model(**inputs)
-        probabilities = torch.softmax(outputs.logits, dim=-1)
         
-        # Get toxic probability (assumes binary classification or multi-label)
-        if probabilities.shape[-1] == 2:
-            # Binary classification: [not_toxic, toxic]
-            toxic_prob = probabilities[0, 1].item()
-        else:
-            # Multi-label: take max across toxic categories
+        # Handle multi-label vs binary classification
+        num_labels = outputs.logits.shape[-1]
+        if num_labels > 2:
+            # Multi-label model (e.g., unitary/toxic-bert): use sigmoid
+            probabilities = torch.sigmoid(outputs.logits)
             toxic_prob = probabilities[0].max().item()
+        else:
+            # Binary classification: use softmax
+            probabilities = torch.softmax(outputs.logits, dim=-1)
+            toxic_prob = probabilities[0, 1].item()
         
         flagged = toxic_prob >= self.threshold
         severity = self._get_severity(toxic_prob)
