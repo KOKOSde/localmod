@@ -2,25 +2,25 @@
 # Multi-stage build for smaller image size
 
 # Build stage
-FROM python:3.9-slim as builder
+FROM python:3.9-slim AS builder
 
 WORKDIR /app
 
-# Install build dependencies with pinned versions
+# Install build dependencies (no version pinning for system packages)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential=12.9 \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install
 COPY pyproject.toml .
 COPY src/ src/
 
-# Install the package with pinned pip
-RUN pip install --no-cache-dir --upgrade pip==23.3.1 && \
+# Install the package
+RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir .
 
 # Runtime stage
-FROM python:3.9-slim as runtime
+FROM python:3.9-slim AS runtime
 
 WORKDIR /app
 
@@ -29,7 +29,7 @@ RUN useradd --create-home --shell /bin/bash localmod && \
     mkdir -p /home/localmod/.cache/localmod && \
     chown -R localmod:localmod /home/localmod
 
-# Install runtime dependencies with pinned versions
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     curl \

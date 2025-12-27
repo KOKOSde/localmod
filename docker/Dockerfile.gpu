@@ -1,7 +1,7 @@
 # LocalMod GPU Dockerfile
 # Based on PyTorch CUDA image
 
-FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime AS runtime
 
 WORKDIR /app
 
@@ -10,10 +10,10 @@ RUN useradd --create-home --shell /bin/bash localmod && \
     mkdir -p /home/localmod/.cache/localmod && \
     chown -R localmod:localmod /home/localmod
 
-# Install Python dependencies with pinned pip
+# Install Python dependencies
 COPY pyproject.toml .
 COPY src/ src/
-RUN pip install --no-cache-dir --upgrade pip==23.3.1 && \
+RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir .
 
 # Copy application code
