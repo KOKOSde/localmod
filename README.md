@@ -11,6 +11,10 @@
   <img src="docs/architecture.svg" alt="LocalMod Architecture" width="800"/>
 </p>
 
+<p align="center">
+  <img src="docs/examples.svg" alt="LocalMod Examples" width="900"/>
+</p>
+
 ---
 
 ## How It Works
@@ -37,7 +41,7 @@
 
 ## Quick Start
 
-### 1. Install
+### Installation
 
 ```bash
 git clone https://github.com/KOKOSde/localmod.git
@@ -45,7 +49,7 @@ cd localmod
 pip install -e .
 ```
 
-### 2. Run the Demo (Works Immediately!)
+### Run the Demo (Works Immediately!)
 
 ```bash
 python examples/demo.py
@@ -53,7 +57,7 @@ python examples/demo.py
 
 **PII detection works instantly** — no model download needed!
 
-### 3. Download ML Models (Optional)
+### Download ML Models (Optional)
 
 For toxicity, spam, NSFW, and prompt injection detection:
 
@@ -61,7 +65,7 @@ For toxicity, spam, NSFW, and prompt injection detection:
 python scripts/download_models.py
 ```
 
-### 4. Use in Python
+### Use in Python
 
 ```python
 from localmod import SafetyPipeline
@@ -78,7 +82,7 @@ print(f"Flagged: {report.flagged}")  # True
 print(f"Severity: {report.severity}")  # medium
 ```
 
-### 4. Or Run as API Server
+### Run as API Server
 
 ```bash
 # Start the server
@@ -90,11 +94,44 @@ curl -X POST http://localhost:8000/analyze \
   -d '{"text": "You are an idiot!", "classifiers": ["toxicity"]}'
 ```
 
-### 5. Or Use Docker
+### Use Docker
 
 ```bash
 docker build -f docker/Dockerfile -t localmod:latest .
 docker run -p 8000:8000 localmod:latest
+```
+
+---
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check with loaded models |
+| `/classifiers` | GET | List available classifiers |
+| `/analyze` | POST | Analyze single text |
+| `/analyze/batch` | POST | Analyze multiple texts |
+| `/redact` | POST | Redact PII from text |
+
+### Example API Response
+
+```json
+{
+  "flagged": true,
+  "results": [
+    {
+      "classifier": "toxicity",
+      "flagged": true,
+      "confidence": 0.909,
+      "severity": "high",
+      "categories": ["toxic", "threat"],
+      "metadata": {"model": "unitary/toxic-bert"},
+      "explanation": ""
+    }
+  ],
+  "summary": "Content flagged for: toxicity (high): toxic, threat",
+  "processing_time_ms": 42.5
+}
 ```
 
 ---
@@ -104,9 +141,9 @@ docker run -p 8000:8000 localmod:latest
 | Classifier | Detects | Technology | Needs Download? |
 |------------|---------|------------|-----------------|
 | 🔒 **PII** | Emails, phones, SSNs, credit cards | Regex + Validation | ❌ **No** (works instantly) |
-| 🔥 **Toxicity** | Hate speech, harassment, threats | ML (DistilBERT) | ✅ Yes |
+| 🔥 **Toxicity** | Hate speech, harassment, threats | ML (BERT) | ✅ Yes |
 | ⚡ **Prompt Injection** | LLM jailbreaks, instruction override | Pattern + ML (DeBERTa) | ✅ Yes |
-| 📧 **Spam** | Promotional content, scams | Heuristics + ML (BERT-tiny) | ✅ Yes |
+| 📧 **Spam** | Promotional content, scams | Heuristics + ML (RoBERTa) | ✅ Yes |
 | 🔞 **NSFW** | Sexual content, adult themes | ML (NSFW-classifier) | ✅ Yes |
 
 > 💡 **PII detection uses regex patterns with validation (Luhn for credit cards, format checks for SSNs) — no ML models required!**
@@ -129,38 +166,6 @@ detector.load()
 text = "Email me at john@example.com or call 555-123-4567"
 redacted, _ = detector.redact(text)
 # Result: "Email me at [EMAIL] or call [PHONE]"
-```
-
----
-
-## API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Health check with loaded models |
-| `/classifiers` | GET | List available classifiers |
-| `/analyze` | POST | Analyze single text |
-| `/analyze/batch` | POST | Analyze multiple texts |
-| `/redact` | POST | Redact PII from text |
-
-### Example Response
-
-```json
-{
-  "flagged": true,
-  "results": [
-    {
-      "classifier": "pii",
-      "flagged": true,
-      "confidence": 1.0,
-      "severity": "medium",
-      "categories": ["email"],
-      "metadata": {"total_count": 1}
-    }
-  ],
-  "summary": "Content flagged for: pii (medium): email",
-  "processing_time_ms": 1.23
-}
 ```
 
 ---
@@ -241,7 +246,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 ## Acknowledgments
 
 Uses pre-trained models from [HuggingFace](https://huggingface.co/):
-- `martin-ha/toxic-comment-model` (Toxicity)
-- `protectai/deberta-v3-base-prompt-injection-v2` (Prompt Injection)
-- `mrm8488/bert-tiny-finetuned-sms-spam-detection` (Spam)
+- `unitary/toxic-bert` (Toxicity - multi-label)
+- `deepset/deberta-v3-base-injection` (Prompt Injection)
+- `mshenoda/roberta-spam` (Spam)
 - `michellejieli/NSFW_text_classifier` (NSFW)
