@@ -40,16 +40,28 @@
 ### 1. Install
 
 ```bash
+git clone https://github.com/KOKOSde/localmod.git
+cd localmod
 pip install -e .
 ```
 
-### 2. Download Models (first time only, requires internet)
+### 2. Run the Demo (Works Immediately!)
 
 ```bash
-python -m localmod.cli download
+python examples/demo.py
 ```
 
-### 3. Use in Python
+**PII detection works instantly** — no model download needed!
+
+### 3. Download ML Models (Optional)
+
+For toxicity, spam, NSFW, and prompt injection detection:
+
+```bash
+python scripts/download_models.py
+```
+
+### 4. Use in Python
 
 ```python
 from localmod import SafetyPipeline
@@ -89,13 +101,15 @@ docker run -p 8000:8000 localmod:latest
 
 ## Classifiers
 
-| Classifier | Detects | Technology | Model |
-|------------|---------|------------|-------|
-| 🔥 **Toxicity** | Hate speech, harassment, threats | ML | DistilBERT |
-| 🔒 **PII** | Emails, phones, SSNs, credit cards | Regex + Validation | None (deterministic) |
-| ⚡ **Prompt Injection** | LLM jailbreaks, instruction override | Pattern + ML | DeBERTa |
-| 📧 **Spam** | Promotional content, scams | Heuristics + ML | BERT-tiny |
-| 🔞 **NSFW** | Sexual content, adult themes | ML | NSFW-classifier |
+| Classifier | Detects | Technology | Needs Download? |
+|------------|---------|------------|-----------------|
+| 🔒 **PII** | Emails, phones, SSNs, credit cards | Regex + Validation | ❌ **No** (works instantly) |
+| 🔥 **Toxicity** | Hate speech, harassment, threats | ML (DistilBERT) | ✅ Yes |
+| ⚡ **Prompt Injection** | LLM jailbreaks, instruction override | Pattern + ML (DeBERTa) | ✅ Yes |
+| 📧 **Spam** | Promotional content, scams | Heuristics + ML (BERT-tiny) | ✅ Yes |
+| 🔞 **NSFW** | Sexual content, adult themes | ML (NSFW-classifier) | ✅ Yes |
+
+> 💡 **PII detection uses regex patterns with validation (Luhn for credit cards, format checks for SSNs) — no ML models required!**
 
 ### PII Detection Details
 
