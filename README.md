@@ -11,6 +11,10 @@
   <img src="docs/architecture.svg" alt="LocalMod Architecture" width="800"/>
 </p>
 
+<p align="center">
+  <img src="docs/architecture.svg" alt="LocalMod Architecture" width="800"/>
+</p>
+
 ---
 
 ## How It Works
