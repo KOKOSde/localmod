@@ -2,7 +2,7 @@
 # Multi-stage build for smaller image size
 
 # Build stage
-FROM python:3.9-slim AS builder
+FROM python:3.14-slim AS builder
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir .
 
 # Runtime stage
-FROM python:3.9-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 WORKDIR /app
 
