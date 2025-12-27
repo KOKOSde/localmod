@@ -1,0 +1,84 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "localmod"
+version = "0.1.0"
+description = "Fully offline content moderation API"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.6"
+authors = [
+    { name = "Your Name", email = "your@email.com" }
+]
+keywords = ["content-moderation", "ai-safety", "toxicity", "pii", "nlp"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "torch>=1.10.0",
+    "transformers>=4.10.0",
+    "fastapi>=0.65.0",
+    "uvicorn[standard]>=0.15.0",
+    "pydantic>=1.8.0",
+    "httpx>=0.20.0",
+    "python-multipart>=0.0.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0.0",
+    "pytest-cov>=2.10.0",
+    "pytest-asyncio>=0.14.0",
+    "flake8>=3.9.0",
+    "mypy>=0.900",
+    "pre-commit>=2.10.0",
+]
+eval = [
+    "datasets>=1.18.0",
+    "scikit-learn>=0.24.0",
+    "pandas>=1.1.0",
+    "tqdm>=4.60.0",
+]
+all = ["localmod[dev,eval]"]
+
+[project.scripts]
+localmod = "localmod.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/YOUR_USERNAME/localmod"
+Documentation = "https://github.com/YOUR_USERNAME/localmod#readme"
+Repository = "https://github.com/YOUR_USERNAME/localmod"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/localmod"]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 100
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.isort]
+known-first-party = ["localmod"]
+
+[tool.mypy]
+python_version = "3.8"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-v --cov=localmod --cov-report=term-missing"
+

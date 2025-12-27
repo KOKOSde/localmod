@@ -1,0 +1,2 @@
+"""LocalMod test suite."""
+
