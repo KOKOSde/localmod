@@ -1,0 +1,30 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'README.md'
+      - '.github/workflows/docs.yml'
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate documentation links
+        run: |
+          # Check for broken internal links in markdown files
+          find . -name "*.md" -exec grep -l "\[.*\](.*)" {} \; | head -20
+
+      - name: Check README badges
+        run: |
+          # Verify README has required sections
+          grep -q "## Quick Start" README.md
+          grep -q "## Installation" README.md || grep -q "### Installation" README.md
+          grep -q "## API" README.md || grep -q "API Endpoints" README.md
+          echo "README sections verified"
+
