@@ -1,8 +1,28 @@
 """Configuration management for LocalMod."""
 
 from functools import lru_cache
-from typing import List
-from pydantic import BaseSettings
+import sys
+
+# Support both pydantic v1 and v2
+# Pydantic v2 moved BaseSettings to pydantic-settings package
+try:
+    from pydantic_settings import BaseSettings
+    PYDANTIC_V2 = True
+except ImportError:
+    try:
+        from pydantic import BaseSettings  # type: ignore[no-redef]
+        PYDANTIC_V2 = False
+    except ImportError:
+        raise ImportError(
+            "Could not import BaseSettings. "
+            "For pydantic v2, install pydantic-settings: pip install pydantic-settings"
+        )
+
+# Use List from typing for Python 3.6/3.7 compatibility
+if sys.version_info >= (3, 9):
+    from typing import List
+else:
+    from typing import List
 
 
 class Settings(BaseSettings):
@@ -42,7 +62,7 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
 
 
-@lru_cache()
+@lru_cache(maxsize=1)
 def get_settings() -> Settings:
     """Get cached settings instance."""
     return Settings()

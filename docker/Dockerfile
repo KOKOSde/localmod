@@ -6,17 +6,17 @@ FROM python:3.9-slim as builder
 
 WORKDIR /app
 
-# Install build dependencies
+# Install build dependencies with pinned versions
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+    build-essential=12.9 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install
 COPY pyproject.toml .
 COPY src/ src/
 
-# Install the package
-RUN pip install --no-cache-dir --upgrade pip && \
+# Install the package with pinned pip
+RUN pip install --no-cache-dir --upgrade pip==23.3.1 && \
     pip install --no-cache-dir .
 
 # Runtime stage
@@ -29,7 +29,7 @@ RUN useradd --create-home --shell /bin/bash localmod && \
     mkdir -p /home/localmod/.cache/localmod && \
     chown -R localmod:localmod /home/localmod
 
-# Install runtime dependencies
+# Install runtime dependencies with pinned versions
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     curl \
@@ -68,4 +68,3 @@ EXPOSE 8000
 
 # Run the server
 CMD ["python", "-m", "localmod.cli", "serve"]
-

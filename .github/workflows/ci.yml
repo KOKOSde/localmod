@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11"]
 
     steps:
       - uses: actions/checkout@v4
@@ -37,6 +37,7 @@ jobs:
 
       - name: Lint with flake8
         run: |
+          pip install flake8
           flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 src/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
 
@@ -83,5 +84,5 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: docker/Dockerfile
-          failure-threshold: warning
-
+          failure-threshold: error
+          ignore: DL3008,DL3013

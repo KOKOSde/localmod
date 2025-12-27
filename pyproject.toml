@@ -22,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 
@@ -31,6 +32,7 @@ dependencies = [
     "fastapi>=0.65.0",
     "uvicorn[standard]>=0.15.0",
     "pydantic>=1.8.0",
+    "pydantic-settings>=2.0.0;python_version>='3.8'",
     "httpx>=0.20.0",
     "python-multipart>=0.0.5",
 ]

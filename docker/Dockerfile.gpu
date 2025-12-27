@@ -1,5 +1,5 @@
 # LocalMod GPU Dockerfile
-# Based on PyTorch with CUDA support
+# Based on PyTorch CUDA image
 
 FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
 
@@ -10,16 +10,10 @@ RUN useradd --create-home --shell /bin/bash localmod && \
     mkdir -p /home/localmod/.cache/localmod && \
     chown -R localmod:localmod /home/localmod
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy and install Python dependencies
+# Install Python dependencies with pinned pip
 COPY pyproject.toml .
 COPY src/ src/
-
-RUN pip install --no-cache-dir --upgrade pip && \
+RUN pip install --no-cache-dir --upgrade pip==23.3.1 && \
     pip install --no-cache-dir .
 
 # Copy application code
@@ -35,20 +29,19 @@ ENV LOCALMOD_DEVICE=cuda
 ENV LOCALMOD_LAZY_LOAD=true
 ENV LOCALMOD_LOG_LEVEL=INFO
 
-# Cache directories
+# Set cache directory
 ENV HF_HOME=/home/localmod/.cache/huggingface
 ENV TRANSFORMERS_CACHE=/home/localmod/.cache/huggingface
 
 # Switch to non-root user
 USER localmod
 
-# Health check
+# Health check using python instead of curl
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
 # Expose port
 EXPOSE 8000
 
 # Run the server
 CMD ["python", "-m", "localmod.cli", "serve"]
-
