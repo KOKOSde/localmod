@@ -1,0 +1,95 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+
+# Linting
+.ruff_cache/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Docker
+docker/
+Dockerfile*
+docker-compose*.yml
+
+# Development files
+Makefile
+*.log
+*.tmp
+
+# Model cache (will be downloaded at runtime)
+.cache/
+models/
+*.bin
+*.safetensors
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Tests (not needed in production image)
+tests/
+conftest.py
+pytest.ini
+
+# Evaluation (not needed in production)
+evaluation/
+
+# Examples (not needed in production)
+examples/
+
+# Scripts (not needed in production)
+scripts/
+
+# GitHub workflows
+.github/
+

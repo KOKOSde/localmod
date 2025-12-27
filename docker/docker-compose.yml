@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # CPU-only service
+  localmod:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: localmod
+    ports:
+      - "8000:8000"
+    environment:
+      - LOCALMOD_DEVICE=cpu
+      - LOCALMOD_LAZY_LOAD=false
+      - LOCALMOD_LOG_LEVEL=INFO
+    volumes:
+      - model-cache:/home/localmod/.cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # GPU-enabled service (use with: docker-compose --profile gpu up)
+  localmod-gpu:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.gpu
+    container_name: localmod-gpu
+    ports:
+      - "8001:8000"
+    environment:
+      - LOCALMOD_DEVICE=cuda
+      - LOCALMOD_LAZY_LOAD=false
+      - LOCALMOD_LOG_LEVEL=INFO
+    volumes:
+      - model-cache:/home/localmod/.cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    profiles:
+      - gpu
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+volumes:
+  model-cache:
+    name: localmod-model-cache
+
