@@ -1,0 +1,41 @@
+{
+  "toxicity": {
+    "accuracy": 94.8,
+    "precision": 69.0,
+    "recall": 54.1,
+    "f1": 60.6,
+    "tp": 20,
+    "tn": 454,
+    "fp": 9,
+    "fn": 17,
+    "samples": 500,
+    "time_sec": 607.07,
+    "samples_per_sec": 0.8
+  },
+  "spam": {
+    "accuracy": 100.0,
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "tp": 67,
+    "tn": 433,
+    "fp": 0,
+    "fn": 0,
+    "samples": 500,
+    "time_sec": 570.16,
+    "samples_per_sec": 0.9
+  },
+  "prompt_injection": {
+    "accuracy": 99.8,
+    "precision": 99.5,
+    "recall": 100.0,
+    "f1": 99.7,
+    "tp": 185,
+    "tn": 314,
+    "fp": 1,
+    "fn": 0,
+    "samples": 500,
+    "time_sec": 60.68,
+    "samples_per_sec": 8.2
+  }
+}
