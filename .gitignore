@@ -80,9 +80,9 @@ dmypy.json
 # ruff
 .ruff_cache/
 
-# Model cache
+# Model cache (downloaded ML model weights)
 .cache/
-models/
+/models/
 .localmod_models/
 *.bin
 *.safetensors
