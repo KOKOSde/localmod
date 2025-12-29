@@ -7,6 +7,7 @@ import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from localmod.models.base import BaseClassifier, ClassificationResult, Severity
+from localmod.models.paths import get_classifier_model_path, get_transformers_kwargs
 
 
 class NSFWClassifier(BaseClassifier):
@@ -19,8 +20,6 @@ class NSFWClassifier(BaseClassifier):
     
     name = "nsfw"
     version = "1.1.0"
-    
-    MODEL_NAME = "michellejieli/NSFW_text_classifier"
     
     NSFW_CATEGORIES = [
         "sexual_content",
@@ -51,20 +50,17 @@ class NSFWClassifier(BaseClassifier):
     ):
         super().__init__(device=device, threshold=threshold)
         self._safe_patterns: List[re.Pattern] = []
+        self._model_path: Optional[str] = None
 
     def load(self) -> None:
         """Load NSFW detection model."""
-        import os
-        # Try local models directory first, then fall back to HuggingFace
-        local_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
-            "models", "nsfw-classifier"
-        )
-        model_path = local_path if os.path.exists(local_path) else self.MODEL_NAME
+        # Get model path (local or HuggingFace)
+        self._model_path = get_classifier_model_path("nsfw")
+        kwargs = get_transformers_kwargs()
         
-        self._tokenizer = AutoTokenizer.from_pretrained(model_path)
+        self._tokenizer = AutoTokenizer.from_pretrained(self._model_path, **kwargs)
         self._model = AutoModelForSequenceClassification.from_pretrained(
-            model_path
+            self._model_path, **kwargs
         )
         self._model.to(self._device)
         self._model.eval()
@@ -100,8 +96,6 @@ class NSFWClassifier(BaseClassifier):
             )
         
         # Check for false positive override FIRST
-        # If text appears safe (matches safe patterns but no explicit keywords), 
-        # reduce confidence significantly
         safe_override = self._is_likely_safe(text)
         
         # Tokenize
@@ -125,7 +119,6 @@ class NSFWClassifier(BaseClassifier):
         
         # Apply safe override - dramatically reduce confidence for likely false positives
         if safe_override and nsfw_prob > 0.5:
-            # Model flagged but text appears innocuous - likely false positive
             nsfw_prob = min(nsfw_prob * 0.1, 0.3)  # Cap at 30%
         
         flagged = nsfw_prob >= self.threshold
@@ -137,7 +130,7 @@ class NSFWClassifier(BaseClassifier):
             severity=self._get_severity(nsfw_prob),
             categories=["sexual_content"] if flagged else [],
             metadata={
-                "model": self.MODEL_NAME,
+                "model": self._model_path,
                 "safe_override_applied": safe_override,
             },
         )
@@ -202,7 +195,7 @@ class NSFWClassifier(BaseClassifier):
                 severity=self._get_severity(nsfw_prob),
                 categories=["sexual_content"] if flagged else [],
                 metadata={
-                    "model": self.MODEL_NAME,
+                    "model": self._model_path,
                     "safe_override_applied": safe_overrides[idx],
                 },
             )

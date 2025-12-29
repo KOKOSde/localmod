@@ -7,6 +7,7 @@ import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from localmod.models.base import BaseClassifier, ClassificationResult, Severity
+from localmod.models.paths import get_classifier_model_path, get_transformers_kwargs
 
 
 class PromptInjectionDetector(BaseClassifier):
@@ -16,8 +17,6 @@ class PromptInjectionDetector(BaseClassifier):
     Uses a combination of:
     1. Pattern matching for known injection techniques
     2. ML model for semantic detection
-    
-    Model: deepset/deberta-v3-base-injection (or similar)
     """
     
     name = "prompt_injection"
@@ -62,11 +61,6 @@ class PromptInjectionDetector(BaseClassifier):
             r"<\|.*?\|>",  # Token markers
         ],
     }
-    
-    # ML model for semantic detection
-    # deepset model has pytorch format compatible with older transformers
-    MODEL_NAME = "deepset/deberta-v3-base-injection"
-    # Alternative: "protectai/deberta-v3-base-prompt-injection-v2" (safetensors, needs newer transformers)
 
     def __init__(
         self,
@@ -77,6 +71,7 @@ class PromptInjectionDetector(BaseClassifier):
         super().__init__(device=device, threshold=threshold)
         self.use_ml_model = use_ml_model
         self._compiled_patterns: Dict[str, List[Pattern]] = {}
+        self._model_path: Optional[str] = None
 
     def load(self) -> None:
         """Load detection patterns and optionally the ML model."""
@@ -89,9 +84,12 @@ class PromptInjectionDetector(BaseClassifier):
         # Load ML model if enabled
         if self.use_ml_model:
             try:
-                self._tokenizer = AutoTokenizer.from_pretrained(self.MODEL_NAME)
+                self._model_path = get_classifier_model_path("prompt_injection")
+                kwargs = get_transformers_kwargs()
+                
+                self._tokenizer = AutoTokenizer.from_pretrained(self._model_path, **kwargs)
                 self._model = AutoModelForSequenceClassification.from_pretrained(
-                    self.MODEL_NAME
+                    self._model_path, **kwargs
                 )
                 self._model.to(self._device)
                 self._model.eval()
@@ -144,6 +142,7 @@ class PromptInjectionDetector(BaseClassifier):
                 "pattern_matches": {k: len(v) for k, v in pattern_matches.items()},
                 "ml_score": round(ml_score, 4),
                 "pattern_score": round(pattern_score, 4),
+                "model": self._model_path,
             },
         )
 
@@ -200,4 +199,3 @@ class PromptInjectionDetector(BaseClassifier):
             return Severity.MEDIUM
         else:
             return Severity.LOW
-

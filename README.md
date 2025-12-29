@@ -2,10 +2,8 @@
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-109%20passed-brightgreen.svg)]()
-[![Coverage](https://img.shields.io/badge/coverage-74%25-green.svg)]()
 
-**Fully offline content moderation API** — Self-hosted content safety for teams who can't afford to send data to the cloud.
+**Fully offline content moderation API** — Self-hosted content safety for teams who can't send data to the cloud.
 
 <p align="center">
   <img src="docs/architecture.svg" alt="LocalMod Architecture" width="800"/>
@@ -17,55 +15,89 @@
 
 ---
 
-## How It Works
-
-```
-┌─────────────┐      POST /analyze       ┌───────────────────────────────────────┐      JSON       ┌─────────────┐
-│  Your App   │  ──────────────────────▶ │           LocalMod API                │ ──────────────▶ │  Response   │
-│             │     "Check this text"    │  ┌─────┐ ┌────┐ ┌─────┐ ┌────┐ ┌────┐ │                 │ flagged: T/F│
-└─────────────┘                          │  │Toxic│ │PII │ │Jailb│ │Spam│ │NSFW│ │                 │ severity    │
-                                         │  └─────┘ └────┘ └─────┘ └────┘ └────┘ │                 │ confidence  │
-                                         └───────────────────────────────────────┘                 └─────────────┘
-                                                    Runs 100% Locally
-```
-
-## Why LocalMod?
-
-| Feature | Benefit |
-|---------|---------|
-| 🔒 **100% Offline** | All models run locally, your data never leaves your infrastructure |
-| ⚡ **Fast** | <100ms on CPU, <30ms on GPU |
-| 🎯 **Comprehensive** | 5 classifiers: Toxicity, PII, Prompt Injection, Spam, NSFW |
-| 🐳 **Docker Ready** | Single image deployment, works anywhere |
-| 💰 **Cost Effective** | No per-request API fees, one-time setup |
-
 ## Quick Start
 
-### Installation
-
 ```bash
+# 1. Clone and install
 git clone https://github.com/KOKOSde/localmod.git
 cd localmod
 pip install -e .
-```
 
-### Run the Demo (Works Immediately!)
-
-```bash
-python examples/demo.py
-```
-
-**PII detection works instantly** — no model download needed!
-
-### Download ML Models (Optional)
-
-For toxicity, spam, NSFW, and prompt injection detection:
-
-```bash
+# 2. Download ML models (one-time)
 python scripts/download_models.py
+
+# 3. Verify offline readiness
+localmod verify-models --offline
+
+# 4. Run the server
+localmod serve
 ```
 
-### Use in Python
+---
+
+## Offline Mode
+
+LocalMod is designed to run **100% offline** after downloading models once.
+
+### Download Models
+
+```bash
+# Download all models to default directory (~/.cache/localmod/models)
+python scripts/download_models.py
+
+# Or specify a custom directory
+python scripts/download_models.py --model-dir /path/to/models
+```
+
+### Verify Offline Readiness
+
+```bash
+# Verify models load and work correctly
+localmod verify-models --offline
+```
+
+### Run Offline
+
+```bash
+# Set environment variables
+export LOCALMOD_MODEL_DIR=~/.cache/localmod/models
+export LOCALMOD_OFFLINE=1
+
+# Run server
+localmod serve
+```
+
+### Docker (Offline)
+
+```bash
+# Build image
+docker build -f docker/Dockerfile -t localmod:latest .
+
+# Run with pre-downloaded models mounted
+docker run -p 8000:8000 \
+  -v /path/to/models:/models \
+  -e LOCALMOD_MODEL_DIR=/models \
+  -e LOCALMOD_OFFLINE=1 \
+  localmod:latest
+```
+
+---
+
+## Classifiers
+
+| Classifier | Detects | Model | Needs Download? |
+|------------|---------|-------|-----------------|
+| 🔒 **PII** | Emails, phones, SSNs, credit cards | Regex | ❌ No |
+| 🔥 **Toxicity** | Hate speech, harassment, threats | `unitary/toxic-bert` | ✅ Yes |
+| ⚡ **Prompt Injection** | LLM jailbreaks, instruction override | `deepset/deberta-v3-base-injection` | ✅ Yes |
+| 📧 **Spam** | Promotional content, scams | `mshenoda/roberta-spam` | ✅ Yes |
+| 🔞 **NSFW** | Sexual content, adult themes | `michellejieli/NSFW_text_classifier` | ✅ Yes |
+
+---
+
+## API Usage
+
+### Python
 
 ```python
 from localmod import SafetyPipeline
@@ -76,29 +108,42 @@ pipeline = SafetyPipeline()
 report = pipeline.analyze("Hello, how are you?")
 print(f"Flagged: {report.flagged}")  # False
 
-# Detect PII
-report = pipeline.analyze("My email is john@example.com")
+# Detect PII (works without model download)
+report = pipeline.analyze("My email is john@example.com", classifiers=["pii"])
 print(f"Flagged: {report.flagged}")  # True
-print(f"Severity: {report.severity}")  # medium
 ```
 
-### Run as API Server
+### REST API
 
 ```bash
-# Start the server
-python -m localmod.cli serve --port 8000
+# Start server
+localmod serve --port 8000
 
-# Test it
+# Analyze text
 curl -X POST http://localhost:8000/analyze \
   -H "Content-Type: application/json" \
-  -d '{"text": "You are an idiot!", "classifiers": ["toxicity"]}'
+  -d '{"text": "Contact me at john@example.com", "classifiers": ["pii"]}'
 ```
 
-### Use Docker
+### API Response
 
-```bash
-docker build -f docker/Dockerfile -t localmod:latest .
-docker run -p 8000:8000 localmod:latest
+```json
+{
+  "flagged": true,
+  "results": [
+    {
+      "classifier": "pii",
+      "flagged": true,
+      "confidence": 1.0,
+      "severity": "medium",
+      "categories": ["email"],
+      "metadata": {"total_count": 1},
+      "explanation": ""
+    }
+  ],
+  "summary": "Content flagged for: pii (medium): email",
+  "processing_time_ms": 1.5
+}
 ```
 
 ---
@@ -107,79 +152,37 @@ docker run -p 8000:8000 localmod:latest
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/health` | GET | Health check with loaded models |
-| `/classifiers` | GET | List available classifiers |
-| `/analyze` | POST | Analyze single text |
-| `/analyze/batch` | POST | Analyze multiple texts |
-| `/redact` | POST | Redact PII from text |
-
-### Example API Response
-
-```json
-{
-  "flagged": true,
-  "results": [
-    {
-      "classifier": "toxicity",
-      "flagged": true,
-      "confidence": 0.909,
-      "severity": "high",
-      "categories": ["toxic", "threat"],
-      "metadata": {"model": "unitary/toxic-bert"},
-      "explanation": ""
-    }
-  ],
-  "summary": "Content flagged for: toxicity (high): toxic, threat",
-  "processing_time_ms": 42.5
-}
-```
-
----
-
-## Classifiers
-
-| Classifier | Detects | Technology | Needs Download? |
-|------------|---------|------------|-----------------|
-| 🔒 **PII** | Emails, phones, SSNs, credit cards | Regex + Validation | ❌ **No** (works instantly) |
-| 🔥 **Toxicity** | Hate speech, harassment, threats | ML (BERT) | ✅ Yes |
-| ⚡ **Prompt Injection** | LLM jailbreaks, instruction override | Pattern + ML (DeBERTa) | ✅ Yes |
-| 📧 **Spam** | Promotional content, scams | Heuristics + ML (RoBERTa) | ✅ Yes |
-| 🔞 **NSFW** | Sexual content, adult themes | ML (NSFW-classifier) | ✅ Yes |
-
-> 💡 **PII detection uses regex patterns with validation (Luhn for credit cards, format checks for SSNs) — no ML models required!**
-
-### PII Detection Details
-
-Automatically detects and can redact:
-- **Email addresses** — `john@example.com` → `[EMAIL]`
-- **Phone numbers** — `555-123-4567` → `[PHONE]`
-- **SSNs** — `123-45-6789` → `[SSN]` (with validation)
-- **Credit Cards** — `4111-1111-1111-1111` → `[CREDIT_CARD]` (Luhn validated)
-- **IP addresses** — `192.168.1.1` → `[IP_ADDRESS]`
-
-```python
-from localmod.classifiers.pii import PIIDetector
-
-detector = PIIDetector()
-detector.load()
-
-text = "Email me at john@example.com or call 555-123-4567"
-redacted, _ = detector.redact(text)
-# Result: "Email me at [EMAIL] or call [PHONE]"
-```
+| `/health` | GET | Health check |
+| `/classifiers` | GET | List classifiers |
+| `/analyze` | POST | Analyze text |
+| `/analyze/batch` | POST | Batch analysis |
+| `/redact` | POST | Redact PII |
 
 ---
 
 ## Configuration
 
-Set via environment variables (prefix with `LOCALMOD_`):
+Environment variables (prefix with `LOCALMOD_`):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `MODEL_DIR` | `~/.cache/localmod/models` | Model directory |
+| `OFFLINE` | `false` | Strict offline mode |
 | `DEVICE` | `auto` | `cpu`, `cuda`, or `auto` |
-| `LAZY_LOAD` | `true` | Load models on first request |
-| `*_THRESHOLD` | `0.5` | Detection threshold per classifier |
-| `MAX_TEXT_LENGTH` | `10000` | Maximum text length |
+| `LAZY_LOAD` | `true` | Load models on first use |
+| `*_THRESHOLD` | `0.5` | Detection threshold |
+
+---
+
+## CLI Commands
+
+```bash
+localmod serve              # Start API server
+localmod analyze "text"     # Analyze text
+localmod download           # Download models
+localmod verify-models      # Verify models work
+localmod list               # List classifiers
+```
 
 ---
 
@@ -193,60 +196,15 @@ Set via environment variables (prefix with `LOCALMOD_`):
 
 ---
 
-## Run Demo
-
-```bash
-python examples/demo.py
-```
-
-Sample output:
-```
-============================================================
-LocalMod Demo - Content Moderation API
-============================================================
-
-[1] Initializing PII detector (no ML model needed)...
-    ✓ PII detector ready
-
-[2] Testing PII Detection...
-    🚨 FLAGGED: "My email is john.doe@example.com..."
-       Types: ['email']
-    🚨 FLAGGED: "Call me at 555-123-4567..."
-       Types: ['phone_us']
-    ✅ Safe: "Hello, how are you today?..."
-
-[3] Testing PII Redaction...
-    Original:  Contact John at john@email.com or 555-123-4567
-    Redacted:  Contact John at [EMAIL] or [PHONE]
-```
-
----
-
 ## Development
 
 ```bash
-# Install with dev dependencies
 pip install -e ".[dev]"
-
-# Run tests
-pytest tests/ -v
-
-# Run fast tests (PII only, no model downloads)
-pytest tests/test_classifiers/test_pii.py -v
+pytest tests/ -v -m "not slow"
 ```
 
 ---
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-## Acknowledgments
-
-Uses pre-trained models from [HuggingFace](https://huggingface.co/):
-- `unitary/toxic-bert` (Toxicity - multi-label)
-- `deepset/deberta-v3-base-injection` (Prompt Injection)
-- `mshenoda/roberta-spam` (Spam)
-- `michellejieli/NSFW_text_classifier` (NSFW)
+MIT License — see [LICENSE](LICENSE).

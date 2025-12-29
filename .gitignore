@@ -82,9 +82,11 @@ dmypy.json
 
 # Model cache
 .cache/
-/models/
+models/
+.localmod_models/
 *.bin
 *.safetensors
+manifest.json
 
 # OS
 .DS_Store

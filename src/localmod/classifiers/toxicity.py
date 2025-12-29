@@ -6,26 +6,18 @@ import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from localmod.models.base import BaseClassifier, ClassificationResult, Severity
+from localmod.models.paths import get_classifier_model_path, get_transformers_kwargs
 
 
 class ToxicityClassifier(BaseClassifier):
     """
     Detects toxic content including hate speech, harassment, threats, and profanity.
     
-    Uses a fine-tuned DistilBERT model for efficient inference.
-    Model: martin-ha/toxic-comment-model (or similar)
+    Uses unitary/toxic-bert for multi-label toxicity classification.
     """
     
     name = "toxicity"
     version = "1.0.0"
-    
-    # Model options (in order of preference)
-    # unitary/toxic-bert is more accurate for general toxicity detection
-    MODEL_OPTIONS = [
-        "unitary/toxic-bert",  # Multi-label, better accuracy
-        "martin-ha/toxic-comment-model",  # Binary, faster but less accurate
-        "s-nlp/roberta_toxicity_classifier",
-    ]
     
     TOXICITY_CATEGORIES = [
         "toxic",
@@ -38,17 +30,20 @@ class ToxicityClassifier(BaseClassifier):
 
     def __init__(
         self,
-        model_name: Optional[str] = None,
         device: str = "auto",
         threshold: float = 0.5,
     ):
         super().__init__(device=device, threshold=threshold)
-        self.model_name = model_name or self.MODEL_OPTIONS[0]
+        self._model_path: Optional[str] = None
 
     def load(self) -> None:
         """Load the toxicity detection model."""
-        self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self._model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
+        # Get model path (local or HuggingFace)
+        self._model_path = get_classifier_model_path("toxicity")
+        kwargs = get_transformers_kwargs()
+        
+        self._tokenizer = AutoTokenizer.from_pretrained(self._model_path, **kwargs)
+        self._model = AutoModelForSequenceClassification.from_pretrained(self._model_path, **kwargs)
         self._model.to(self._device)
         self._model.eval()
 
@@ -100,7 +95,7 @@ class ToxicityClassifier(BaseClassifier):
             confidence=toxic_prob,
             severity=severity,
             categories=categories,
-            metadata={"model": self.model_name},
+            metadata={"model": self._model_path},
         )
 
     @torch.no_grad()
@@ -137,16 +132,22 @@ class ToxicityClassifier(BaseClassifier):
         
         # Batch inference
         outputs = self._model(**inputs)
-        probabilities = torch.softmax(outputs.logits, dim=-1)
+        
+        # Handle multi-label vs binary
+        num_labels = outputs.logits.shape[-1]
+        if num_labels > 2:
+            probabilities = torch.sigmoid(outputs.logits)
+        else:
+            probabilities = torch.softmax(outputs.logits, dim=-1)
         
         # Build results
         results: List[Optional[ClassificationResult]] = [None] * len(texts)
         
         for idx, orig_idx in enumerate(valid_indices):
-            if probabilities.shape[-1] == 2:
-                toxic_prob = probabilities[idx, 1].item()
-            else:
+            if num_labels > 2:
                 toxic_prob = probabilities[idx].max().item()
+            else:
+                toxic_prob = probabilities[idx, 1].item()
             
             flagged = toxic_prob >= self.threshold
             results[orig_idx] = ClassificationResult(
@@ -155,7 +156,7 @@ class ToxicityClassifier(BaseClassifier):
                 confidence=toxic_prob,
                 severity=self._get_severity(toxic_prob),
                 categories=self._get_categories(probabilities[idx]) if flagged else [],
-                metadata={"model": self.model_name},
+                metadata={"model": self._model_path},
             )
         
         # Fill empty text results
@@ -194,4 +195,3 @@ class ToxicityClassifier(BaseClassifier):
         elif probs[-1].item() >= self.threshold:
             categories.append("toxic")
         return categories
-

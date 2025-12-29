@@ -1,10 +1,10 @@
 """Configuration management for LocalMod."""
 
+import os
 from functools import lru_cache
 import sys
 
 # Support both pydantic v1 and v2
-# Pydantic v2 moved BaseSettings to pydantic-settings package
 try:
     from pydantic_settings import BaseSettings
     PYDANTIC_V2 = True
@@ -36,7 +36,9 @@ class Settings(BaseSettings):
     # Model settings
     device: str = "auto"
     model_cache_dir: str = "~/.cache/localmod"
+    model_dir: str = ""  # If empty, uses <model_cache_dir>/models
     lazy_load: bool = True
+    offline: bool = False  # Strict offline mode - fail if models not local
     
     # Classifier defaults
     toxicity_threshold: float = 0.5
@@ -66,3 +68,52 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Get cached settings instance."""
     return Settings()
+
+
+def get_model_dir() -> str:
+    """
+    Get the model directory path.
+    
+    Priority:
+    1. LOCALMOD_MODEL_DIR environment variable
+    2. Settings.model_dir if set
+    3. <model_cache_dir>/models (default: ~/.cache/localmod/models)
+    """
+    # Check environment variable first
+    env_model_dir = os.environ.get("LOCALMOD_MODEL_DIR")
+    if env_model_dir:
+        return os.path.expanduser(env_model_dir)
+    
+    settings = get_settings()
+    
+    # Use explicit model_dir if set
+    if settings.model_dir:
+        return os.path.expanduser(settings.model_dir)
+    
+    # Default to <model_cache_dir>/models
+    return os.path.join(os.path.expanduser(settings.model_cache_dir), "models")
+
+
+def is_offline_mode() -> bool:
+    """
+    Check if offline mode is enabled.
+    
+    Respects:
+    - LOCALMOD_OFFLINE=1 or true
+    - HF_HUB_OFFLINE=1
+    - TRANSFORMERS_OFFLINE=1
+    """
+    # Check LOCALMOD_OFFLINE
+    offline_env = os.environ.get("LOCALMOD_OFFLINE", "").lower()
+    if offline_env in ("1", "true", "yes"):
+        return True
+    
+    # Check HuggingFace offline env vars
+    if os.environ.get("HF_HUB_OFFLINE", "") == "1":
+        return True
+    if os.environ.get("TRANSFORMERS_OFFLINE", "") == "1":
+        return True
+    
+    # Check settings
+    settings = get_settings()
+    return settings.offline

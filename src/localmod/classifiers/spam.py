@@ -1,12 +1,13 @@
 """Spam and promotional content detection."""
 
 import re
-from typing import Dict, List, Pattern, Tuple
+from typing import Dict, List, Optional, Pattern, Tuple
 
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from localmod.models.base import BaseClassifier, ClassificationResult, Severity
+from localmod.models.paths import get_classifier_model_path, get_transformers_kwargs
 
 
 class SpamClassifier(BaseClassifier):
@@ -18,10 +19,6 @@ class SpamClassifier(BaseClassifier):
     
     name = "spam"
     version = "1.0.0"
-    
-    # Better spam model - mshenoda/roberta-spam is more accurate for general spam
-    MODEL_NAME = "mshenoda/roberta-spam"
-    # Alternative: "mrm8488/bert-tiny-finetuned-sms-spam-detection" (smaller, SMS-focused)
     
     # Spam indicators (heuristics)
     SPAM_PATTERNS: Dict[str, str] = {
@@ -54,6 +51,7 @@ class SpamClassifier(BaseClassifier):
         super().__init__(device=device, threshold=threshold)
         self.use_ml_model = use_ml_model
         self._compiled_patterns: Dict[str, Pattern] = {}
+        self._model_path: Optional[str] = None
 
     def load(self) -> None:
         """Load spam detection model and compile patterns."""
@@ -64,9 +62,12 @@ class SpamClassifier(BaseClassifier):
         # Load ML model if enabled
         if self.use_ml_model:
             try:
-                self._tokenizer = AutoTokenizer.from_pretrained(self.MODEL_NAME)
+                self._model_path = get_classifier_model_path("spam")
+                kwargs = get_transformers_kwargs()
+                
+                self._tokenizer = AutoTokenizer.from_pretrained(self._model_path, **kwargs)
                 self._model = AutoModelForSequenceClassification.from_pretrained(
-                    self.MODEL_NAME
+                    self._model_path, **kwargs
                 )
                 self._model.to(self._device)
                 self._model.eval()
@@ -115,6 +116,7 @@ class SpamClassifier(BaseClassifier):
                 "pattern_matches": pattern_matches,
                 "heuristic_score": round(heuristic_score, 4),
                 "ml_score": round(ml_score, 4),
+                "model": self._model_path,
             },
         )
 
@@ -164,4 +166,3 @@ class SpamClassifier(BaseClassifier):
             return Severity.MEDIUM
         else:
             return Severity.HIGH
-
