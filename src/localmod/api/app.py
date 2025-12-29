@@ -75,3 +75,4 @@ def create_app() -> FastAPI:
 # Default app instance
 app = create_app()
 
+

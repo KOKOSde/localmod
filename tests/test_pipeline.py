@@ -188,3 +188,4 @@ class TestPipelineWithMultipleClassifiers:
         assert report.flagged is True
         assert len([r for r in report.results if r.flagged]) >= 1
 
+

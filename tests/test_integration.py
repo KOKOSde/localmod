@@ -337,3 +337,4 @@ class TestEdgeCases:
         assert len(reports) == 1
         assert isinstance(reports[0], SafetyReport)
 
+

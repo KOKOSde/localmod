@@ -90,3 +90,4 @@ class TestToxicityClassifierWithModel:
         assert len(results) == 3
         assert results[1].flagged is False  # Empty text
 
+
