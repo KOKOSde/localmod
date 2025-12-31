@@ -1,90 +1,72 @@
-"""Model path utilities for LocalMod."""
+"""Model path resolution utilities for LocalMod.
+
+Handles:
+- Finding local models in LOCALMOD_MODEL_DIR or ~/.cache/localmod/models
+- Falling back to HuggingFace model IDs if local not found
+- Offline mode via LOCALMOD_OFFLINE environment variable
+"""
 
 import os
-from typing import Dict, Optional
+from typing import Dict, Any
 
-from localmod.config import get_model_dir, is_offline_mode
-
-
-# Canonical model registry - maps classifier names to HuggingFace model IDs
+# Model registry: classifier name -> HuggingFace model ID
 MODEL_REGISTRY: Dict[str, str] = {
+    # Toxicity ensemble models (weighted: 50% unitary, 20% dehatebert, 15% snlp, 15% facebook)
     "toxicity": "unitary/toxic-bert",
-    "prompt_injection": "deepset/deberta-v3-base-injection",
+    "toxicity_dehatebert": "Hate-speech-CNERG/dehatebert-mono-english",
+    "toxicity_snlp": "s-nlp/roberta_toxicity_classifier",
+    "toxicity_facebook": "facebook/roberta-hate-speech-dynabench-r4-target",
+    # Other classifiers
     "spam": "mshenoda/roberta-spam",
+    "prompt_injection": "deepset/deberta-v3-base-injection",
     "nsfw": "michellejieli/NSFW_text_classifier",
-    # PII uses regex, no ML model needed
 }
 
-# Order for downloading (stable, user-facing)
-DOWNLOAD_ORDER = ["toxicity", "prompt_injection", "spam", "nsfw"]
+# Toxicity ensemble model names
+TOXICITY_ENSEMBLE_MODELS = ["toxicity", "toxicity_dehatebert", "toxicity_snlp", "toxicity_facebook"]
+
+# Toxicity ensemble weights (sum to 1.0)
+TOXICITY_ENSEMBLE_WEIGHTS = {
+    "toxicity": 0.50,           # Unitary Toxic-BERT
+    "toxicity_dehatebert": 0.20, # DeHateBERT
+    "toxicity_snlp": 0.15,       # s-nlp RoBERTa
+    "toxicity_facebook": 0.15,   # Facebook Dynabench
+}
+
+# Stable download order
+DOWNLOAD_ORDER = [
+    "toxicity", "toxicity_dehatebert", "toxicity_snlp", "toxicity_facebook",
+    "prompt_injection", "spam", "nsfw"
+]
 
 
-def get_classifier_model_path(classifier_name: str) -> str:
-    """
-    Get the path to load a classifier's model.
+def get_model_dir() -> str:
+    """Get the base directory for model storage."""
+    model_dir = os.environ.get("LOCALMOD_MODEL_DIR")
+    if model_dir:
+        return os.path.expanduser(model_dir)
     
-    In offline mode: Returns local path only, raises error if not found.
-    In online mode: Returns local path if exists, otherwise HuggingFace model ID.
-    
-    Args:
-        classifier_name: Name of the classifier (toxicity, spam, etc.)
-        
-    Returns:
-        Path to local model directory or HuggingFace model ID
-        
-    Raises:
-        FileNotFoundError: If offline mode and model not found locally
-    """
-    if classifier_name not in MODEL_REGISTRY:
-        raise ValueError(f"Unknown classifier: {classifier_name}. "
-                        f"Available: {list(MODEL_REGISTRY.keys())}")
-    
-    model_dir = get_model_dir()
-    local_path = os.path.join(model_dir, classifier_name)
-    
-    # Check if local model exists
-    local_exists = (
-        os.path.isdir(local_path) and 
-        os.path.exists(os.path.join(local_path, "config.json"))
-    )
-    
-    if is_offline_mode():
-        if not local_exists:
-            raise FileNotFoundError(
-                f"Model for '{classifier_name}' not found at {local_path}. "
-                f"Run 'localmod download' first, or set LOCALMOD_OFFLINE=0."
-            )
-        return local_path
-    
-    # Online mode: prefer local if exists, else use HuggingFace
-    if local_exists:
-        return local_path
-    
-    return MODEL_REGISTRY[classifier_name]
+    # Default: ~/.cache/localmod/models
+    cache_dir = os.environ.get("LOCALMOD_CACHE_DIR", "~/.cache/localmod")
+    return os.path.expanduser(os.path.join(cache_dir, "models"))
 
 
 def get_local_model_path(classifier_name: str) -> str:
-    """
-    Get the local directory path for a classifier's model.
-    
-    Does not check if the model exists - use for downloading.
-    
-    Args:
-        classifier_name: Name of the classifier
-        
-    Returns:
-        Path to local model directory
-    """
-    model_dir = get_model_dir()
-    return os.path.join(model_dir, classifier_name)
+    """Get the local model path for a classifier."""
+    return os.path.join(get_model_dir(), classifier_name)
 
 
 def model_exists_locally(classifier_name: str) -> bool:
-    """Check if a model exists in the local model directory."""
+    """Check if a model exists locally."""
     local_path = get_local_model_path(classifier_name)
+    # Check for common model files
     return (
-        os.path.isdir(local_path) and 
-        os.path.exists(os.path.join(local_path, "config.json"))
+        os.path.isdir(local_path) and
+        (
+            os.path.exists(os.path.join(local_path, "config.json")) or
+            os.path.exists(os.path.join(local_path, "pytorch_model.bin")) or
+            os.path.exists(os.path.join(local_path, "model.safetensors"))
+        )
     )
 
 
@@ -95,14 +77,55 @@ def get_hf_model_id(classifier_name: str) -> str:
     return MODEL_REGISTRY[classifier_name]
 
 
-def get_transformers_kwargs() -> Dict[str, bool]:
+def is_offline_mode() -> bool:
+    """Check if offline mode is enabled."""
+    offline = os.environ.get("LOCALMOD_OFFLINE", "").lower()
+    if offline in ("1", "true", "yes"):
+        return True
+    # Also check HuggingFace offline vars
+    if os.environ.get("HF_HUB_OFFLINE") == "1":
+        return True
+    if os.environ.get("TRANSFORMERS_OFFLINE") == "1":
+        return True
+    return False
+
+
+def get_classifier_model_path(classifier_name: str) -> str:
     """
-    Get kwargs for transformers from_pretrained() based on offline mode.
+    Get the model path to use for a classifier.
     
-    Returns:
-        Dict with local_files_only=True if offline mode enabled
+    Priority:
+    1. Local path if exists and offline mode is enabled
+    2. Local path if exists
+    3. HuggingFace model ID (if not offline)
+    4. Raise error if offline and no local model
     """
+    local_path = get_local_model_path(classifier_name)
+    hf_model_id = get_hf_model_id(classifier_name)
+    offline = is_offline_mode()
+    
+    if model_exists_locally(classifier_name):
+        return local_path
+    
+    if offline:
+        raise FileNotFoundError(
+            f"Offline mode enabled but model '{classifier_name}' not found at '{local_path}'. "
+            f"Run 'localmod download' to download models first."
+        )
+    
+    # Return HuggingFace model ID for download
+    return hf_model_id
+
+
+def get_transformers_kwargs() -> Dict[str, Any]:
+    """Get kwargs to pass to transformers from_pretrained methods."""
+    kwargs: Dict[str, Any] = {}
+    
     if is_offline_mode():
-        return {"local_files_only": True}
-    return {}
+        kwargs["local_files_only"] = True
+    
+    return kwargs
+
+
+
 

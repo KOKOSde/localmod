@@ -16,22 +16,42 @@ import json
 import os
 import sys
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 # Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 
 # Model registry - maps classifier names to their HuggingFace model IDs
+# Toxicity uses a weighted ensemble of 4 models for 0.75 balanced accuracy
 MODELS: Dict[str, str] = {
+    # Toxicity ensemble (weighted: 50% unitary, 20% dehatebert, 15% snlp, 15% facebook)
     "toxicity": "unitary/toxic-bert",
+    "toxicity_dehatebert": "Hate-speech-CNERG/dehatebert-mono-english",
+    "toxicity_snlp": "s-nlp/roberta_toxicity_classifier",
+    "toxicity_facebook": "facebook/roberta-hate-speech-dynabench-r4-target",
+    # Other classifiers
     "prompt_injection": "deepset/deberta-v3-base-injection",
     "spam": "mshenoda/roberta-spam",
     "nsfw": "michellejieli/NSFW_text_classifier",
 }
 
 # Download order (stable, user-facing)
-DOWNLOAD_ORDER: List[str] = ["toxicity", "prompt_injection", "spam", "nsfw"]
+DOWNLOAD_ORDER: List[str] = [
+    "toxicity", "toxicity_dehatebert", "toxicity_snlp", "toxicity_facebook",
+    "prompt_injection", "spam", "nsfw"
+]
+
+# Model descriptions for display
+MODEL_DESCRIPTIONS: Dict[str, str] = {
+    "toxicity": "Toxicity (Unitary Toxic-BERT) - 50% ensemble weight",
+    "toxicity_dehatebert": "Toxicity (DeHateBERT) - 20% ensemble weight",
+    "toxicity_snlp": "Toxicity (s-nlp RoBERTa) - 15% ensemble weight",
+    "toxicity_facebook": "Toxicity (Facebook Dynabench) - 15% ensemble weight",
+    "prompt_injection": "Prompt Injection Detection",
+    "spam": "Spam Detection",
+    "nsfw": "NSFW Content Detection",
+}
 
 
 def get_default_model_dir() -> str:
@@ -54,8 +74,9 @@ def download_model(name: str, model_id: str, target_dir: str) -> bool:
     Returns:
         True if successful, False otherwise
     """
+    desc = MODEL_DESCRIPTIONS.get(name, name)
     print(f"\n{'='*60}")
-    print(f"📥 Downloading: {name}")
+    print(f"📥 Downloading: {desc}")
     print(f"   From: {model_id}")
     print(f"   To:   {target_dir}")
     print(f"{'='*60}")
@@ -96,10 +117,21 @@ def write_manifest(model_dir: str, downloaded: Dict[str, str]) -> None:
         "transformers_version": transformers.__version__,
         "torch_version": torch.__version__,
         "python_version": sys.version,
+        "ensemble_info": {
+            "toxicity_models": ["toxicity", "toxicity_dehatebert", "toxicity_snlp", "toxicity_facebook"],
+            "toxicity_weights": {
+                "toxicity": 0.50,
+                "toxicity_dehatebert": 0.20,
+                "toxicity_snlp": 0.15,
+                "toxicity_facebook": 0.15,
+            },
+            "benchmark_score": "0.75 balanced accuracy (CHI 2025)",
+        },
         "models": {
             name: {
                 "hf_model_id": model_id,
                 "local_path": os.path.join(model_dir, name),
+                "description": MODEL_DESCRIPTIONS.get(name, name),
             }
             for name, model_id in downloaded.items()
         }
@@ -118,9 +150,9 @@ def main() -> int:
     )
     parser.add_argument(
         "--classifier", "-c",
-        choices=list(MODELS.keys()) + ["all", "pii"],
+        choices=list(MODELS.keys()) + ["all", "pii", "toxicity_all"],
         default="all",
-        help="Which classifier's model to download (default: all)"
+        help="Which classifier's model to download (default: all). Use 'toxicity_all' for all toxicity ensemble models."
     )
     parser.add_argument(
         "--model-dir",
@@ -146,13 +178,20 @@ def main() -> int:
     # Determine which models to download (in stable order)
     if args.classifier == "all":
         to_download = [(name, MODELS[name]) for name in DOWNLOAD_ORDER]
+    elif args.classifier == "toxicity_all":
+        toxicity_models = ["toxicity", "toxicity_dehatebert", "toxicity_snlp", "toxicity_facebook"]
+        to_download = [(name, MODELS[name]) for name in toxicity_models]
+    elif args.classifier.startswith("toxicity"):
+        to_download = [(args.classifier, MODELS[args.classifier])]
     else:
         to_download = [(args.classifier, MODELS[args.classifier])]
     
     print(f"\n📋 Models to download:")
     for name, model_id in to_download:
-        print(f"   • {name}: {model_id}")
-    print(f"   Total: {len(to_download)} model(s)")
+        desc = MODEL_DESCRIPTIONS.get(name, name)
+        print(f"   • {desc}")
+        print(f"     {model_id}")
+    print(f"\n   Total: {len(to_download)} model(s)")
     
     # Check for transformers
     try:
@@ -193,7 +232,8 @@ def main() -> int:
     
     for name, success in results.items():
         status = "✅ Success" if success else "❌ Failed"
-        print(f"   {name}: {status}")
+        desc = MODEL_DESCRIPTIONS.get(name, name)
+        print(f"   {desc}: {status}")
     
     print(f"\n   Total: {success_count}/{len(results)} succeeded")
     
@@ -205,6 +245,9 @@ def main() -> int:
     print("✅ All models downloaded!")
     print("="*60)
     print(f"\n📁 Models saved to: {model_dir}")
+    print("\n📊 Toxicity Ensemble Info:")
+    print("   4 models combined achieve 0.75 balanced accuracy")
+    print("   (matches Amazon Comprehend, beats Perspective API)")
     print("\n🔒 To run offline:")
     print(f"   export LOCALMOD_MODEL_DIR={model_dir}")
     print("   export LOCALMOD_OFFLINE=1")

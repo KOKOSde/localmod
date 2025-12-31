@@ -1,0 +1,73 @@
+{
+  "benchmark": "CHI 2025 Lost in Moderation",
+  "timestamp": "2024-12-31",
+  "localmod_version": "2.0.0",
+  "configuration": {
+    "ensemble_models": [
+      {
+        "name": "toxicity",
+        "hf_id": "unitary/toxic-bert",
+        "weight": 0.50,
+        "type": "multilabel"
+      },
+      {
+        "name": "toxicity_dehatebert",
+        "hf_id": "Hate-speech-CNERG/dehatebert-mono-english",
+        "weight": 0.20,
+        "type": "binary"
+      },
+      {
+        "name": "toxicity_snlp",
+        "hf_id": "s-nlp/roberta_toxicity_classifier",
+        "weight": 0.15,
+        "type": "binary"
+      },
+      {
+        "name": "toxicity_facebook",
+        "hf_id": "facebook/roberta-hate-speech-dynabench-r4-target",
+        "weight": 0.15,
+        "type": "binary"
+      }
+    ],
+    "threshold": 0.17
+  },
+  "datasets": {
+    "HateXplain": {
+      "samples": 1924,
+      "source": "hatexplain",
+      "balanced_accuracy": 0.68,
+      "f1_score": 0.74
+    },
+    "Civil Comments": {
+      "samples": 2000,
+      "source": "google/civil_comments",
+      "balanced_accuracy": 0.78,
+      "f1_score": 0.72
+    },
+    "SBIC": {
+      "samples": 2000,
+      "source": "social_bias_frames",
+      "balanced_accuracy": 0.79,
+      "f1_score": 0.78
+    }
+  },
+  "results": {
+    "localmod_balanced_accuracy": 0.75,
+    "localmod_f1_score": 0.75
+  },
+  "comparison_with_commercial_apis": {
+    "OpenAI Content Moderation": 0.83,
+    "Microsoft Azure": 0.81,
+    "LocalMod (Ensemble)": 0.75,
+    "Amazon Comprehend": 0.74,
+    "Perspective API": 0.62,
+    "Google Natural Language": 0.59
+  },
+  "notes": [
+    "LocalMod matches Amazon Comprehend performance",
+    "Outperforms Perspective API by 13%",
+    "Outperforms Google Natural Language by 16%",
+    "Gap to OpenAI is 8%",
+    "All testing done on CPU"
+  ]
+}

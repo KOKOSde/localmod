@@ -1,139 +1,158 @@
 # LocalMod Deployment Guide
 
 ## Table of Contents
-- [Offline Models](#offline-models)
+- [Quick Start](#quick-start)
 - [Docker Deployment](#docker-deployment)
 - [Production Setup](#production-setup)
 - [Configuration](#configuration)
+- [Monitoring](#monitoring)
 
-## Offline Models
+## Quick Start
 
-LocalMod is designed to run **100% offline** after a one-time model download.
-
-### Download Models
-
-```bash
-# Download all models to default directory
-python scripts/download_models.py
-
-# Or specify custom directory
-python scripts/download_models.py --model-dir /opt/localmod/models
-```
-
-Models are saved to `~/.cache/localmod/models` by default.
-
-### Verify Models
+### Local Development
 
 ```bash
-localmod verify-models --offline
-```
-
-### Configure Offline Mode
-
-```bash
-# Environment variables
-export LOCALMOD_MODEL_DIR=/path/to/models
-export LOCALMOD_OFFLINE=1
+# Install
+pip install -e ".[all]"
 
 # Start server
-localmod serve
+localmod serve --reload
 ```
 
-### Manifest
+### Docker (Recommended for Production)
 
-After downloading, a `manifest.json` is created:
+```bash
+# Build image
+docker build -f docker/Dockerfile -t localmod:latest .
 
-```json
-{
-  "downloaded_at": "2024-01-15T10:30:00",
-  "transformers_version": "4.36.0",
-  "torch_version": "2.1.0",
-  "models": {
-    "toxicity": {
-      "hf_model_id": "unitary/toxic-bert",
-      "local_path": "/path/to/models/toxicity"
-    }
-  }
-}
+# Run container
+docker run -d -p 8000:8000 --name localmod localmod:latest
 ```
 
 ## Docker Deployment
 
-### CPU Deployment
+### CPU-Only Deployment
 
 ```bash
-# Build
-docker build -f docker/Dockerfile -t localmod:latest .
+# Using docker-compose
+docker-compose -f docker/docker-compose.yml up -d
 
-# Run
-docker run -p 8000:8000 localmod:latest
-```
+# View logs
+docker-compose -f docker/docker-compose.yml logs -f
 
-### With Pre-Downloaded Models
-
-```bash
-# 1. Download models on host
-python scripts/download_models.py --model-dir ./models
-
-# 2. Run container with mounted models
-docker run -p 8000:8000 \
-  -v $(pwd)/models:/models:ro \
-  -e LOCALMOD_MODEL_DIR=/models \
-  -e LOCALMOD_OFFLINE=1 \
-  localmod:latest
+# Stop
+docker-compose -f docker/docker-compose.yml down
 ```
 
 ### GPU Deployment
 
+Requires NVIDIA Docker runtime.
+
 ```bash
+# Install NVIDIA Container Toolkit
+# See: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+
 # Build GPU image
 docker build -f docker/Dockerfile.gpu -t localmod:gpu .
 
 # Run with GPU
-docker run --gpus all -p 8000:8000 \
-  -v $(pwd)/models:/models:ro \
-  -e LOCALMOD_MODEL_DIR=/models \
-  -e LOCALMOD_OFFLINE=1 \
-  -e LOCALMOD_DEVICE=cuda \
-  localmod:gpu
+docker run --gpus all -d -p 8000:8000 --name localmod-gpu localmod:gpu
+
+# Or use docker-compose
+docker-compose -f docker/docker-compose.yml --profile gpu up -d
 ```
 
-### Docker Compose
+### Pre-downloading Models
 
-```yaml
-version: "3.8"
-services:
-  localmod:
-    image: localmod:latest
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./models:/models:ro
-    environment:
-      - LOCALMOD_MODEL_DIR=/models
-      - LOCALMOD_OFFLINE=1
-      - LOCALMOD_LAZY_LOAD=false
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+To avoid downloading models on first request:
+
+```bash
+# Download models first
+python scripts/download_models.py --model-dir /path/to/models
+
+# Run with pre-downloaded models in offline mode
+docker run -d -p 8000:8000 \
+  -v /path/to/models:/models \
+  -e LOCALMOD_MODEL_DIR=/models \
+  -e LOCALMOD_OFFLINE=1 \
+  -e LOCALMOD_LAZY_LOAD=false \
+  localmod:latest
+```
+
+### Offline Mode
+
+For air-gapped or security-sensitive deployments:
+
+```bash
+# 1. Download models on a machine with internet
+python scripts/download_models.py --model-dir /path/to/models
+
+# 2. Copy /path/to/models to your secure environment
+
+# 3. Run in offline mode
+export LOCALMOD_MODEL_DIR=/path/to/models
+export LOCALMOD_OFFLINE=1
+localmod serve
 ```
 
 ## Production Setup
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `LOCALMOD_MODEL_DIR` | `~/.cache/localmod/models` | Model directory |
-| `LOCALMOD_OFFLINE` | `false` | Strict offline mode |
-| `LOCALMOD_DEVICE` | `auto` | `cpu`, `cuda`, or `auto` |
-| `LOCALMOD_LAZY_LOAD` | `true` | Load models on first use |
-| `LOCALMOD_WORKERS` | `1` | Number of workers |
-| `LOCALMOD_*_THRESHOLD` | `0.5` | Per-classifier threshold |
+Create a `.env` file:
+
+```bash
+LOCALMOD_HOST=0.0.0.0
+LOCALMOD_PORT=8000
+LOCALMOD_DEVICE=cpu
+LOCALMOD_LAZY_LOAD=false
+LOCALMOD_LOG_LEVEL=INFO
+LOCALMOD_WORKERS=4
+LOCALMOD_TOXICITY_THRESHOLD=0.5
+LOCALMOD_PII_THRESHOLD=0.5
+LOCALMOD_SPAM_THRESHOLD=0.5
+```
+
+### Running with Multiple Workers
+
+```bash
+# Using uvicorn directly
+uvicorn localmod.api.app:app --host 0.0.0.0 --port 8000 --workers 4
+
+# Using CLI
+localmod serve --workers 4
+```
+
+**Note:** With multiple workers, each worker loads its own models. Ensure sufficient memory.
+
+### Reverse Proxy (nginx)
+
+```nginx
+upstream localmod {
+    server 127.0.0.1:8000;
+    keepalive 32;
+}
+
+server {
+    listen 80;
+    server_name api.yourdomain.com;
+
+    location / {
+        proxy_pass http://localmod;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Connection "";
+        proxy_connect_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+}
+```
 
 ### Systemd Service
+
+Create `/etc/systemd/system/localmod.service`:
 
 ```ini
 [Unit]
@@ -143,80 +162,89 @@ After=network.target
 [Service]
 Type=simple
 User=localmod
+Group=localmod
 WorkingDirectory=/opt/localmod
-Environment=LOCALMOD_MODEL_DIR=/opt/localmod/models
-Environment=LOCALMOD_OFFLINE=1
+Environment=LOCALMOD_DEVICE=cpu
 Environment=LOCALMOD_LAZY_LOAD=false
 ExecStart=/usr/local/bin/localmod serve --workers 4
 Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-### Reverse Proxy (nginx)
-
-```nginx
-upstream localmod {
-    server 127.0.0.1:8000;
-}
-
-server {
-    listen 80;
-    server_name api.example.com;
-
-    location / {
-        proxy_pass http://localmod;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable localmod
+sudo systemctl start localmod
 ```
 
 ## Configuration
 
 ### Memory Requirements
 
-| Configuration | RAM |
-|--------------|-----|
-| PII only | ~200MB |
-| All classifiers (CPU) | ~2GB |
-| All classifiers (GPU) | ~1GB (+4GB VRAM) |
+| Configuration | RAM | VRAM (GPU) | Disk |
+|--------------|-----|------------|------|
+| PII only | ~200MB | N/A | 0 |
+| Toxicity ensemble | ~4GB | ~6GB | ~2GB |
+| All classifiers (CPU) | ~6GB | N/A | ~3GB |
+| All classifiers (GPU) | ~2GB | ~8GB | ~3GB |
 
-### Threshold Tuning
+**Note:** Toxicity detection now uses an ensemble of 4 models for 0.75 balanced accuracy (matching Amazon Comprehend).
 
-**High Security (catch more):**
+### Recommended Settings by Use Case
+
+**High Security (low false negatives):**
 ```bash
 LOCALMOD_TOXICITY_THRESHOLD=0.3
+LOCALMOD_PII_THRESHOLD=0.3
 LOCALMOD_PROMPT_INJECTION_THRESHOLD=0.3
 ```
 
-**High Precision (fewer false positives):**
+**High Precision (low false positives):**
 ```bash
 LOCALMOD_TOXICITY_THRESHOLD=0.7
+LOCALMOD_PII_THRESHOLD=0.5
 LOCALMOD_PROMPT_INJECTION_THRESHOLD=0.7
 ```
 
+## Monitoring
+
+### Health Check
+
+```bash
+curl http://localhost:8000/health
+```
+
+### Docker Health Check
+
+Built into the Docker images:
+```bash
+docker inspect --format='{{.State.Health.Status}}' localmod
+```
+
+### Prometheus Metrics (Future)
+
+Planned for v0.2.0.
+
 ## Troubleshooting
 
-### Offline Mode Errors
+### Model Download Failures
 
-```
-FileNotFoundError: Model for 'toxicity' not found
-```
-
-**Fix:** Download models first:
-```bash
-python scripts/download_models.py
-localmod verify-models
-```
+If models fail to download:
+1. Check internet connectivity
+2. Set `HF_HOME` to a writable directory
+3. Pre-download models: `localmod download`
 
 ### Out of Memory
 
 1. Use fewer classifiers
-2. Reduce `LOCALMOD_MAX_BATCH_SIZE`
-3. Use CPU mode
+2. Reduce batch size: `LOCALMOD_MAX_BATCH_SIZE=8`
+3. Use CPU instead of GPU for memory-constrained environments
 
 ### Slow First Request
 
-Set `LOCALMOD_LAZY_LOAD=false` to load models at startup.
+First request loads models. Set `LOCALMOD_LAZY_LOAD=false` to load on startup.
+
+

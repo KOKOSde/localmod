@@ -69,6 +69,56 @@ def get_settings() -> Settings:
     """Get cached settings instance."""
     return Settings()
 
+def get_model_dir() -> str:
+    """
+    Get the model directory path.
+    
+    Priority:
+    1. LOCALMOD_MODEL_DIR environment variable
+    2. Settings.model_dir if set
+    3. <model_cache_dir>/models (default: ~/.cache/localmod/models)
+    """
+    # Check environment variable first
+    env_model_dir = os.environ.get("LOCALMOD_MODEL_DIR")
+    if env_model_dir:
+        return os.path.expanduser(env_model_dir)
+    
+    settings = get_settings()
+    
+    # Use explicit model_dir if set
+    if settings.model_dir:
+        return os.path.expanduser(settings.model_dir)
+    
+    # Default to <model_cache_dir>/models
+    return os.path.join(os.path.expanduser(settings.model_cache_dir), "models")
+
+
+def is_offline_mode() -> bool:
+    """
+    Check if offline mode is enabled.
+    
+    Respects:
+    - LOCALMOD_OFFLINE=1 or true
+    - HF_HUB_OFFLINE=1
+    - TRANSFORMERS_OFFLINE=1
+    """
+    # Check LOCALMOD_OFFLINE
+    offline_env = os.environ.get("LOCALMOD_OFFLINE", "").lower()
+    if offline_env in ("1", "true", "yes"):
+        return True
+    
+    # Check HuggingFace offline env vars
+    if os.environ.get("HF_HUB_OFFLINE", "") == "1":
+        return True
+    if os.environ.get("TRANSFORMERS_OFFLINE", "") == "1":
+        return True
+    
+    # Check settings
+    settings = get_settings()
+    return settings.offline
+
+    return Settings()
+
 
 def get_model_dir() -> str:
     """
@@ -117,3 +167,4 @@ def is_offline_mode() -> bool:
     # Check settings
     settings = get_settings()
     return settings.offline
+

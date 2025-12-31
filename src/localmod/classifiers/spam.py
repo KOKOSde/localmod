@@ -166,3 +166,4 @@ class SpamClassifier(BaseClassifier):
             return Severity.MEDIUM
         else:
             return Severity.HIGH
+
