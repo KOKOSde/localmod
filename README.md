@@ -23,14 +23,13 @@ LocalMod's toxicity detection was benchmarked against commercial APIs using the 
 
 | System | Balanced Accuracy | Type |
 |--------|------------------|------|
-| OpenAI Content Moderation | 0.83 | Commercial API |
-| Microsoft Azure | 0.81 | Commercial API |
+| OpenAI Moderation API | 0.83 | Commercial API |
+| Azure AI Content Safety | 0.81 | Commercial API |
 | **LocalMod** | **0.75** ⭐ | Open Source / Local |
 | Amazon Comprehend | 0.74 | Commercial API |
-| Perspective API | 0.62 | Commercial API |
-| Google Natural Language | 0.59 | Commercial API |
+| Perspective API (Jigsaw) | 0.62 | Commercial API |
 
-> **LocalMod matches Amazon Comprehend and outperforms Perspective API and Google NL — while running 100% locally!**
+> **LocalMod matches Amazon Comprehend and outperforms Perspective API — while running 100% locally!**
 
 ---
 
