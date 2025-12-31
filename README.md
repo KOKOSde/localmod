@@ -19,17 +19,20 @@
 
 ## 📊 Benchmark Results (CHI 2025)
 
-LocalMod's toxicity detection was benchmarked against commercial APIs using the CHI 2025 "Lost in Moderation" methodology (HateXplain, Civil Comments, SBIC datasets):
+LocalMod's toxicity detection was benchmarked using the CHI 2025 ["Lost in Moderation"](https://arxiv.org/html/2503.01623) methodology (HateXplain, Civil Comments, SBIC, ToxiGen datasets). Commercial API scores are from the paper:
 
 | System | Balanced Accuracy | Type |
 |--------|------------------|------|
-| OpenAI Moderation API | 0.83 | Commercial API |
-| Azure AI Content Safety | 0.81 | Commercial API |
+| OpenAI Content Moderation API | 0.83 | Commercial API |
+| Microsoft Azure Content Moderation | 0.81 | Commercial API |
 | **LocalMod** | **0.75** ⭐ | Open Source / Local |
 | Amazon Comprehend | 0.74 | Commercial API |
-| Perspective API (Jigsaw) | 0.62 | Commercial API |
+| Perspective API | 0.62 | Commercial API |
+| Google Natural Language API | 0.59 | Commercial API |
 
-> **LocalMod matches Amazon Comprehend and outperforms Perspective API — while running 100% locally!**
+> **LocalMod matches Amazon Comprehend and outperforms Perspective API and Google NL — while running 100% locally!**
+
+*Reference: Hartmann et al., "Lost in Moderation: How Commercial Content Moderation APIs Over- and Under-Moderate Group-Targeted Hate Speech and Linguistic Variations", CHI 2025*
 
 ---
 

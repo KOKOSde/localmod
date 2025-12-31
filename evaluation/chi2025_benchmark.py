@@ -31,12 +31,14 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 
 # Published commercial API scores from CHI 2025 paper
+# Reference: Hartmann et al., "Lost in Moderation", CHI 2025
+# https://arxiv.org/html/2503.01623
 PUBLISHED_SCORES = {
-    "OpenAI Content Moderation": 0.83,
-    "Microsoft Azure": 0.81,
+    "OpenAI Content Moderation API": 0.83,
+    "Microsoft Azure Content Moderation": 0.81,
     "Amazon Comprehend": 0.74,
     "Perspective API": 0.62,
-    "Google Natural Language": 0.59,
+    "Google Natural Language API": 0.59,
 }
 
 # LocalMod toxicity ensemble configuration
