@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 570">
   <defs>
     <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
       <polygon points="0 0, 8 3, 0 6" fill="#475569"/>
@@ -6,11 +6,11 @@
   </defs>
   
   <!-- Background -->
-  <rect width="900" height="500" fill="#0f172a"/>
+  <rect width="900" height="570" fill="#0f172a"/>
   
   <!-- Title -->
   <text x="450" y="35" text-anchor="middle" fill="#f1f5f9" font-family="system-ui" font-size="22" font-weight="700">LocalMod in Action</text>
-  <text x="450" y="55" text-anchor="middle" fill="#64748b" font-family="system-ui" font-size="12">Real examples of content classification</text>
+  <text x="450" y="55" text-anchor="middle" fill="#64748b" font-family="system-ui" font-size="12">Real examples of text &amp; image classification</text>
   
   <!-- ==================== ROW 1: Toxicity ==================== -->
   
@@ -25,7 +25,7 @@
   <!-- Classifier -->
   <rect x="300" y="80" width="120" height="50" rx="8" fill="#7c3aed"/>
   <text x="360" y="102" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="11" font-weight="600">🔥 Toxicity</text>
-  <text x="360" y="118" text-anchor="middle" fill="#c4b5fd" font-family="monospace" font-size="8" font-weight="700">toxic-bert</text>
+  <text x="360" y="118" text-anchor="middle" fill="#c4b5fd" font-family="monospace" font-size="8" font-weight="700">4-model ensemble</text>
   
   <!-- Arrow -->
   <path d="M 430 105 L 480 105" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
@@ -124,20 +124,20 @@
   <rect x="680" y="300" width="180" height="8" rx="4" fill="#ef4444"/>
   <text x="770" y="328" text-anchor="middle" fill="#f87171" font-family="monospace" font-size="10" font-weight="700">99.9% confidence</text>
   
-  <!-- ==================== ROW 5: NSFW ==================== -->
+  <!-- ==================== ROW 5: NSFW IMAGE (NEW!) ==================== -->
   
-  <!-- Input -->
+  <!-- Input - Image icon -->
   <rect x="30" y="360" width="200" height="50" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
-  <text x="130" y="380" text-anchor="middle" fill="#f472b6" font-family="monospace" font-size="11">"Send me explicit pics"</text>
-  <text x="130" y="398" text-anchor="middle" fill="#64748b" font-family="system-ui" font-size="9">Adult request</text>
+  <text x="130" y="380" text-anchor="middle" fill="#f472b6" font-family="monospace" font-size="11">🖼️ uploaded_image.jpg</text>
+  <text x="130" y="398" text-anchor="middle" fill="#64748b" font-family="system-ui" font-size="9">User uploaded image</text>
   
   <!-- Arrow -->
   <path d="M 240 385 L 290 385" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
   
   <!-- Classifier -->
   <rect x="300" y="360" width="120" height="50" rx="8" fill="#be185d"/>
-  <text x="360" y="382" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="11" font-weight="600">🔞 NSFW</text>
-  <text x="360" y="398" text-anchor="middle" fill="#fbcfe8" font-family="monospace" font-size="8" font-weight="700">NSFW-classifier</text>
+  <text x="360" y="382" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="11" font-weight="600">🖼️ NSFW Image</text>
+  <text x="360" y="398" text-anchor="middle" fill="#fbcfe8" font-family="monospace" font-size="8" font-weight="700">ViT (Falconsai)</text>
   
   <!-- Arrow -->
   <path d="M 430 385 L 480 385" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
@@ -145,27 +145,31 @@
   <!-- Result -->
   <rect x="490" y="360" width="160" height="50" rx="8" fill="#dc2626"/>
   <text x="570" y="382" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="12" font-weight="700">⚠ FLAGGED</text>
-  <text x="570" y="398" text-anchor="middle" fill="#fecaca" font-family="system-ui" font-size="10">Adult content detected</text>
+  <text x="570" y="398" text-anchor="middle" fill="#fecaca" font-family="system-ui" font-size="10">NSFW content detected</text>
   
   <!-- Confidence bar -->
   <rect x="680" y="370" width="180" height="8" rx="4" fill="#334155"/>
-  <rect x="680" y="370" width="175" height="8" rx="4" fill="#ef4444"/>
-  <text x="770" y="398" text-anchor="middle" fill="#f87171" font-family="monospace" font-size="10" font-weight="700">97% confidence</text>
+  <rect x="680" y="370" width="171" height="8" rx="4" fill="#ef4444"/>
+  <text x="770" y="398" text-anchor="middle" fill="#f87171" font-family="monospace" font-size="10" font-weight="700">95% confidence</text>
   
-  <!-- ==================== ROW 6: SAFE ==================== -->
+  <!-- NEW badge -->
+  <rect x="855" y="360" width="35" height="16" rx="4" fill="#22c55e"/>
+  <text x="872" y="372" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="8" font-weight="700">NEW</text>
   
-  <!-- Input -->
+  <!-- ==================== ROW 6: SAFE IMAGE ==================== -->
+  
+  <!-- Input - Safe image -->
   <rect x="30" y="430" width="200" height="50" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
-  <text x="130" y="450" text-anchor="middle" fill="#4ade80" font-family="monospace" font-size="11">"Hello! How are you?"</text>
-  <text x="130" y="468" text-anchor="middle" fill="#64748b" font-family="system-ui" font-size="9">Normal conversation</text>
+  <text x="130" y="450" text-anchor="middle" fill="#4ade80" font-family="monospace" font-size="11">🖼️ family_photo.jpg</text>
+  <text x="130" y="468" text-anchor="middle" fill="#64748b" font-family="system-ui" font-size="9">Normal photo</text>
   
   <!-- Arrow -->
   <path d="M 240 455 L 290 455" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
   
-  <!-- All classifiers (compact) -->
-  <rect x="300" y="430" width="120" height="50" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
-  <text x="360" y="450" text-anchor="middle" fill="#94a3b8" font-family="system-ui" font-size="10">All 5 Classifiers</text>
-  <text x="360" y="468" text-anchor="middle" fill="#64748b" font-family="system-ui" font-size="9">No issues found</text>
+  <!-- Classifier -->
+  <rect x="300" y="430" width="120" height="50" rx="8" fill="#be185d"/>
+  <text x="360" y="452" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="11" font-weight="600">🖼️ NSFW Image</text>
+  <text x="360" y="468" text-anchor="middle" fill="#fbcfe8" font-family="monospace" font-size="8" font-weight="700">ViT (Falconsai)</text>
   
   <!-- Arrow -->
   <path d="M 430 455 L 480 455" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
@@ -173,13 +177,39 @@
   <!-- Result -->
   <rect x="490" y="430" width="160" height="50" rx="8" fill="#059669"/>
   <text x="570" y="452" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="12" font-weight="700">✓ SAFE</text>
-  <text x="570" y="468" text-anchor="middle" fill="#bbf7d0" font-family="system-ui" font-size="10">Content approved</text>
+  <text x="570" y="468" text-anchor="middle" fill="#bbf7d0" font-family="system-ui" font-size="10">Image approved</text>
   
   <!-- Confidence bar (green) -->
   <rect x="680" y="440" width="180" height="8" rx="4" fill="#334155"/>
-  <rect x="680" y="440" width="180" height="8" rx="4" fill="#10b981"/>
-  <text x="770" y="468" text-anchor="middle" fill="#4ade80" font-family="monospace" font-size="10" font-weight="700">99.9% safe</text>
+  <rect x="680" y="440" width="176" height="8" rx="4" fill="#10b981"/>
+  <text x="770" y="468" text-anchor="middle" fill="#4ade80" font-family="monospace" font-size="10" font-weight="700">98% safe</text>
+  
+  <!-- ==================== ROW 7: SAFE TEXT ==================== -->
+  
+  <!-- Input -->
+  <rect x="30" y="500" width="200" height="50" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="130" y="520" text-anchor="middle" fill="#4ade80" font-family="monospace" font-size="11">"Hello! How are you?"</text>
+  <text x="130" y="538" text-anchor="middle" fill="#64748b" font-family="system-ui" font-size="9">Normal conversation</text>
+  
+  <!-- Arrow -->
+  <path d="M 240 525 L 290 525" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  
+  <!-- All classifiers (compact) -->
+  <rect x="300" y="500" width="120" height="50" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="360" y="520" text-anchor="middle" fill="#94a3b8" font-family="system-ui" font-size="10">All 5 Classifiers</text>
+  <text x="360" y="538" text-anchor="middle" fill="#64748b" font-family="system-ui" font-size="9">No issues found</text>
+  
+  <!-- Arrow -->
+  <path d="M 430 525 L 480 525" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  
+  <!-- Result -->
+  <rect x="490" y="500" width="160" height="50" rx="8" fill="#059669"/>
+  <text x="570" y="522" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="12" font-weight="700">✓ SAFE</text>
+  <text x="570" y="538" text-anchor="middle" fill="#bbf7d0" font-family="system-ui" font-size="10">Content approved</text>
+  
+  <!-- Confidence bar (green) -->
+  <rect x="680" y="510" width="180" height="8" rx="4" fill="#334155"/>
+  <rect x="680" y="510" width="180" height="8" rx="4" fill="#10b981"/>
+  <text x="770" y="538" text-anchor="middle" fill="#4ade80" font-family="monospace" font-size="10" font-weight="700">99.9% safe</text>
   
 </svg>
-
-
