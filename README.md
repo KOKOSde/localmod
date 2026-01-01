@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests](https://img.shields.io/badge/tests-109%20passed-brightgreen.svg)]()
 
-**Fully offline content moderation API** — Self-hosted content safety for teams who can't send data to the cloud.
+**Fully offline content moderation API** — Free, self-hosted, and private. Your data never leaves your infrastructure.
 
 <p align="center">
   <img src="docs/architecture.svg" alt="LocalMod Architecture" width="800"/>
@@ -20,7 +20,7 @@
 
 ### Toxicity Detection
 
-Benchmarked using [CHI 2025 "Lost in Moderation"](https://arxiv.org/html/2503.01623) methodology:
+Benchmarked using [CHI 2025 "Lost in Moderation"](https://arxiv.org/html/2503.01623) methodology (HateXplain, Civil Comments, SBIC datasets):
 
 | System | Balanced Accuracy | Type |
 |--------|------------------|------|
@@ -172,11 +172,13 @@ docker run -p 8000:8000 \
 
 ## Performance
 
-| Metric | CPU | GPU |
-|--------|-----|-----|
-| Latency (p95) | <100ms | <30ms |
-| Throughput | 20+ req/sec | 100+ req/sec |
-| Memory | <4GB RAM | <6GB VRAM |
+| Classifier | CPU Latency | GPU Latency | Memory |
+|------------|-------------|-------------|--------|
+| PII (regex) | <1ms | <1ms | Minimal |
+| Single ML model | ~50-200ms | ~10-30ms | ~1GB |
+| Toxicity ensemble (4 models) | ~200-500ms | ~30-80ms | ~3GB |
+
+*Performance varies by hardware. GPU recommended for production workloads.*
 
 ---
 
