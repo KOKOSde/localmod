@@ -194,7 +194,7 @@
   
   <!-- All classifiers (compact) -->
   <rect x="300" y="500" width="120" height="50" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
-  <text x="360" y="520" text-anchor="middle" fill="#94a3b8" font-family="system-ui" font-size="10">All 5 Classifiers</text>
+  <text x="360" y="520" text-anchor="middle" fill="#94a3b8" font-family="system-ui" font-size="10">All 6 Classifiers</text>
   <text x="360" y="538" text-anchor="middle" fill="#64748b" font-family="system-ui" font-size="9">No issues found</text>
   
   <!-- Arrow -->
