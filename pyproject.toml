@@ -35,6 +35,7 @@ dependencies = [
     "pydantic-settings>=2.0.0;python_version>='3.8'",
     "httpx>=0.20.0",
     "python-multipart>=0.0.5",
+    "Pillow>=8.0.0",  # Required for image moderation
 ]
 
 [project.optional-dependencies]

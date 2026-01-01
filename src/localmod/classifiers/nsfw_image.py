@@ -7,11 +7,10 @@ This classifier uses a Vision Transformer (ViT) model fine-tuned for NSFW detect
 """
 
 import os
-from typing import List, Optional, Union, BinaryIO
+from typing import List, Optional, Union, BinaryIO, Any
 from pathlib import Path
 
 import torch
-from PIL import Image
 
 from localmod.models.base import BaseClassifier, ClassificationResult, Severity
 
@@ -72,9 +71,12 @@ class ImageNSFWClassifier(BaseClassifier):
         self._model.to(self._device)
         self._model.eval()
 
-    def _load_image(self, image_input: Union[str, Path, bytes, BinaryIO, Image.Image]) -> Image.Image:
-        """Load image from various input types."""
-        if isinstance(image_input, Image.Image):
+    def _load_image(self, image_input: Union[str, Path, bytes, BinaryIO, Any]) -> Any:
+        """Load image from various input types. Returns PIL Image."""
+        from PIL import Image
+        
+        # Check if it's already a PIL Image
+        if hasattr(image_input, 'convert') and hasattr(image_input, 'mode'):
             return image_input.convert("RGB")
         
         if isinstance(image_input, (str, Path)):
@@ -101,7 +103,7 @@ class ImageNSFWClassifier(BaseClassifier):
         raise ValueError(f"Unsupported image input type: {type(image_input)}")
 
     @torch.no_grad()
-    def predict(self, image_input: Union[str, Path, bytes, BinaryIO, Image.Image]) -> ClassificationResult:
+    def predict(self, image_input: Union[str, Path, bytes, BinaryIO, Any]) -> ClassificationResult:
         """
         Detect NSFW content in an image.
         
@@ -175,7 +177,7 @@ class ImageNSFWClassifier(BaseClassifier):
         )
 
     @torch.no_grad()
-    def predict_batch(self, image_inputs: List[Union[str, Path, bytes, Image.Image]]) -> List[ClassificationResult]:
+    def predict_batch(self, image_inputs: List[Union[str, Path, bytes, Any]]) -> List[ClassificationResult]:
         """Batch prediction for multiple images."""
         self._ensure_loaded()
         
@@ -183,8 +185,8 @@ class ImageNSFWClassifier(BaseClassifier):
             return []
         
         # Load all images
-        images = []
-        errors = {}
+        images: List[Any] = []
+        errors: dict = {}
         
         for i, img_input in enumerate(image_inputs):
             try:
@@ -286,4 +288,3 @@ class ImageNSFWClassifier(BaseClassifier):
             f"{self.name} is an image classifier. "
             "Use predict(image_path) or predict(pil_image) instead of predict(text)."
         )
-
