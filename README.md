@@ -86,6 +86,21 @@ docker build -f docker/Dockerfile -t localmod:latest .
 docker run -p 8000:8000 localmod:latest
 ```
 
+### Discord Bot 🆕
+
+```bash
+# Install Discord dependency
+pip install -e ".[discord]"
+
+# Set your bot token
+export DISCORD_BOT_TOKEN=your_token_here
+
+# Run the bot
+python examples/discord_bot.py
+```
+
+Features: Real-time text & image moderation, auto-delete, timeout, logging.
+
 ---
 
 ## Classifiers
