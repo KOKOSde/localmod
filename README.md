@@ -38,17 +38,20 @@ Benchmarked using [CHI 2025 "Lost in Moderation"](https://arxiv.org/html/2503.01
 
 ---
 
-## Quick Start
+## Installation
 
 ```bash
-# Install
 git clone https://github.com/KOKOSde/localmod.git
 cd localmod
 pip install -e .
 
 # Download ML models (~3GB)
 python scripts/download_models.py
+```
 
+## Quick Start
+
+```bash
 # Run demo
 python examples/demo.py
 ```
