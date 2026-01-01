@@ -19,19 +19,38 @@
 
 ## 📊 Benchmark Results
 
-LocalMod was evaluated on established public benchmarks:
+### Toxicity Detection (CHI 2025)
 
-| Benchmark | Task | LocalMod | OpenAI | Azure | Amazon | Perspective |
-|-----------|------|----------|--------|-------|--------|-------------|
-| **CHI 2025** ¹ | Toxicity | **0.75** | 0.83 | 0.81 | 0.74 | 0.62 |
-| **SMS Spam** ² | Spam | **0.998** | — | — | — | — |
+Benchmarked using the CHI 2025 ["Lost in Moderation"](https://arxiv.org/html/2503.01623) methodology (HateXplain, Civil Comments, SBIC datasets):
 
-**Toxicity Detection**: LocalMod achieves **0.75 balanced accuracy**, matching Amazon Comprehend and outperforming Perspective API — while running 100% locally.
+| System | Balanced Accuracy | Type |
+|--------|------------------|------|
+| OpenAI Moderation API | 0.83 | Commercial |
+| Azure Content Moderator | 0.81 | Commercial |
+| **LocalMod** | **0.75** ⭐ | Open Source / Local |
+| Amazon Comprehend | 0.74 | Commercial |
+| Perspective API | 0.62 | Commercial |
 
-**Spam Detection**: LocalMod achieves **99.8% balanced accuracy** on the UCI SMS Spam Collection benchmark.
+> LocalMod **matches Amazon Comprehend** and **outperforms Perspective API by 13%** — while running 100% locally.
 
-> ¹ CHI 2025 ["Lost in Moderation"](https://arxiv.org/html/2503.01623) methodology (HateXplain, Civil Comments, SBIC datasets). Commercial scores from paper.
-> ² [UCI SMS Spam Collection](https://archive.ics.uci.edu/ml/datasets/sms+spam+collection) - 5,574 SMS messages (Almeida et al., 2011)
+### Spam Detection (SMS Spam Collection)
+
+| System | Balanced Accuracy | Dataset |
+|--------|------------------|---------|
+| **LocalMod** | **0.998** | [UCI SMS Spam Collection](https://archive.ics.uci.edu/ml/datasets/sms+spam+collection) (5,574 messages) |
+
+### Toxicity Ensemble Models
+
+LocalMod uses a weighted ensemble of 4 models:
+
+| Model | Weight | Purpose |
+|-------|--------|---------|
+| `unitary/toxic-bert` | 50% | Multi-label toxicity (Jigsaw) |
+| `Hate-speech-CNERG/dehatebert-mono-english` | 20% | Hate speech detection |
+| `s-nlp/roberta_toxicity_classifier` | 15% | Toxicity classification |
+| `facebook/roberta-hate-speech-dynabench-r4-target` | 15% | Adversarially robust |
+
+*References: Hartmann et al., "Lost in Moderation", CHI 2025; Almeida et al., SMS Spam Collection, 2011*
 
 ---
 
