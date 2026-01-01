@@ -13,7 +13,7 @@ class TestNSFWClassifier:
         classifier = NSFWClassifier()
         
         assert classifier.name == "nsfw"
-        assert classifier.version == "1.0.0"
+        assert classifier.version == "1.1.0"  # Updated version with FP filtering
         assert classifier.threshold == 0.5
 
     def test_custom_threshold(self):

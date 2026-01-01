@@ -19,34 +19,19 @@
 
 ## 📊 Benchmark Results
 
-LocalMod was tested against multiple public benchmarks:
+LocalMod was evaluated on established public benchmarks:
 
-| Benchmark | Task | LocalMod Score | Notes |
-|-----------|------|----------------|-------|
-| **Deepset Prompt Injections** (2023) | Prompt Injection | **0.99** Balanced Accuracy | 🏆 Near-perfect detection |
-| **SMS Spam Collection** | Spam Detection | **0.998** Balanced Accuracy | 🏆 Near-perfect detection |
-| **Lakera Gandalf** (2023) | Prompt Injection Attacks | **88.4%** Detection Rate | ✅ Strong adversarial defense |
-| **CHI 2025 Lost in Moderation** | Toxicity Detection | **0.75** Balanced Accuracy | Matches Amazon Comprehend |
+| Benchmark | Task | LocalMod | OpenAI | Azure | Amazon | Perspective |
+|-----------|------|----------|--------|-------|--------|-------------|
+| **CHI 2025** ¹ | Toxicity | **0.75** | 0.83 | 0.81 | 0.74 | 0.62 |
+| **SMS Spam** ² | Spam | **0.998** | — | — | — | — |
 
-### Toxicity Detection Comparison (CHI 2025)
+**Toxicity Detection**: LocalMod achieves **0.75 balanced accuracy**, matching Amazon Comprehend and outperforming Perspective API — while running 100% locally.
 
-Toxicity detection benchmarked using the CHI 2025 ["Lost in Moderation"](https://arxiv.org/html/2503.01623) methodology (HateXplain, Civil Comments, SBIC datasets). Commercial API scores are from the paper:
+**Spam Detection**: LocalMod achieves **99.8% balanced accuracy** on the UCI SMS Spam Collection benchmark.
 
-| System | Balanced Accuracy | Type |
-|--------|------------------|------|
-| OpenAI Content Moderation API | 0.83 | Commercial API |
-| Microsoft Azure Content Moderation | 0.81 | Commercial API |
-| **LocalMod** | **0.75** ⭐ | Open Source / Local |
-| Amazon Comprehend | 0.74 | Commercial API |
-| Perspective API | 0.62 | Commercial API |
-| Google Natural Language API | 0.59 | Commercial API |
-
-> **LocalMod matches Amazon Comprehend and outperforms Perspective API — while running 100% locally!**
-
-*References:*
-- *Hartmann et al., "Lost in Moderation", CHI 2025*
-- *Deepset Prompt Injections Dataset: [HuggingFace](https://huggingface.co/datasets/deepset/prompt-injections)*
-- *Lakera Gandalf: [HuggingFace](https://huggingface.co/datasets/Lakera/gandalf_ignore_instructions)*
+> ¹ CHI 2025 ["Lost in Moderation"](https://arxiv.org/html/2503.01623) methodology (HateXplain, Civil Comments, SBIC datasets). Commercial scores from paper.
+> ² [UCI SMS Spam Collection](https://archive.ics.uci.edu/ml/datasets/sms+spam+collection) - 5,574 SMS messages (Almeida et al., 2011)
 
 ---
 

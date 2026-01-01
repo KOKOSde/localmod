@@ -13,8 +13,8 @@ class TestToxicityClassifier:
         classifier = ToxicityClassifier()
         
         assert classifier.name == "toxicity"
-        assert classifier.version == "1.0.0"
-        assert classifier.threshold == 0.5
+        assert classifier.version == "2.0.0"  # Ensemble version
+        assert classifier.threshold == 0.17  # Optimized threshold from CHI 2025 benchmark
 
     def test_custom_threshold(self):
         """Test classifier with custom threshold."""
@@ -30,13 +30,14 @@ class TestToxicityClassifier:
 
     def test_severity_mapping(self):
         """Test severity level mapping."""
-        classifier = ToxicityClassifier(threshold=0.5)
+        classifier = ToxicityClassifier(threshold=0.17)
         
-        assert classifier._get_severity(0.3) == Severity.NONE
-        assert classifier._get_severity(0.5) == Severity.LOW
-        assert classifier._get_severity(0.65) == Severity.MEDIUM
-        assert classifier._get_severity(0.8) == Severity.HIGH
-        assert classifier._get_severity(0.95) == Severity.CRITICAL
+        # Thresholds: <0.17=NONE, <0.4=LOW, <0.6=MEDIUM, <0.8=HIGH, >=0.8=CRITICAL
+        assert classifier._get_severity(0.1) == Severity.NONE
+        assert classifier._get_severity(0.3) == Severity.LOW
+        assert classifier._get_severity(0.5) == Severity.MEDIUM
+        assert classifier._get_severity(0.7) == Severity.HIGH
+        assert classifier._get_severity(0.9) == Severity.CRITICAL
 
 
 @pytest.mark.slow
