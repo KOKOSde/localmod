@@ -16,10 +16,12 @@ MODEL_REGISTRY: Dict[str, str] = {
     "toxicity_dehatebert": "Hate-speech-CNERG/dehatebert-mono-english",
     "toxicity_snlp": "s-nlp/roberta_toxicity_classifier",
     "toxicity_facebook": "facebook/roberta-hate-speech-dynabench-r4-target",
-    # Other classifiers
+    # Other text classifiers
     "spam": "mshenoda/roberta-spam",
     "prompt_injection": "deepset/deberta-v3-base-injection",
     "nsfw": "michellejieli/NSFW_text_classifier",
+    # Image classifiers
+    "nsfw_image": "Falconsai/nsfw_image_detection",
 }
 
 # Toxicity ensemble model names
@@ -33,10 +35,11 @@ TOXICITY_ENSEMBLE_WEIGHTS = {
     "toxicity_facebook": 0.15,   # Facebook Dynabench
 }
 
-# Stable download order
+# Stable download order (text models first, then image models)
 DOWNLOAD_ORDER = [
     "toxicity", "toxicity_dehatebert", "toxicity_snlp", "toxicity_facebook",
-    "prompt_injection", "spam", "nsfw"
+    "prompt_injection", "spam", "nsfw",
+    "nsfw_image",  # Image classifier
 ]
 
 

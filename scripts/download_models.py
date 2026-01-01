@@ -30,16 +30,19 @@ MODELS: Dict[str, str] = {
     "toxicity_dehatebert": "Hate-speech-CNERG/dehatebert-mono-english",
     "toxicity_snlp": "s-nlp/roberta_toxicity_classifier",
     "toxicity_facebook": "facebook/roberta-hate-speech-dynabench-r4-target",
-    # Other classifiers
+    # Other text classifiers
     "prompt_injection": "deepset/deberta-v3-base-injection",
     "spam": "mshenoda/roberta-spam",
     "nsfw": "michellejieli/NSFW_text_classifier",
+    # Image classifiers
+    "nsfw_image": "Falconsai/nsfw_image_detection",
 }
 
-# Download order (stable, user-facing)
+# Download order (stable, user-facing) - text models first, then image
 DOWNLOAD_ORDER: List[str] = [
     "toxicity", "toxicity_dehatebert", "toxicity_snlp", "toxicity_facebook",
-    "prompt_injection", "spam", "nsfw"
+    "prompt_injection", "spam", "nsfw",
+    "nsfw_image",
 ]
 
 # Model descriptions for display
@@ -50,7 +53,8 @@ MODEL_DESCRIPTIONS: Dict[str, str] = {
     "toxicity_facebook": "Toxicity (Facebook Dynabench) - 15% ensemble weight",
     "prompt_injection": "Prompt Injection Detection",
     "spam": "Spam Detection",
-    "nsfw": "NSFW Content Detection",
+    "nsfw": "NSFW Text Content Detection",
+    "nsfw_image": "NSFW Image Detection (ViT)",
 }
 
 
@@ -60,6 +64,10 @@ def get_default_model_dir() -> str:
     if env_dir:
         return os.path.expanduser(env_dir)
     return os.path.expanduser("~/.cache/localmod/models")
+
+
+# Image classifier names (use different download logic)
+IMAGE_CLASSIFIERS = {"nsfw_image"}
 
 
 def download_model(name: str, model_id: str, target_dir: str) -> bool:
@@ -82,22 +90,39 @@ def download_model(name: str, model_id: str, target_dir: str) -> bool:
     print(f"{'='*60}")
     
     try:
-        from transformers import AutoTokenizer, AutoModelForSequenceClassification
-        
         # Create target directory
         os.makedirs(target_dir, exist_ok=True)
         
-        print("   [1/4] Loading tokenizer...")
-        tokenizer = AutoTokenizer.from_pretrained(model_id)
-        
-        print("   [2/4] Loading model...")
-        model = AutoModelForSequenceClassification.from_pretrained(model_id)
-        
-        print("   [3/4] Saving tokenizer...")
-        tokenizer.save_pretrained(target_dir)
-        
-        print("   [4/4] Saving model...")
-        model.save_pretrained(target_dir)
+        if name in IMAGE_CLASSIFIERS:
+            # Image classifier - use AutoImageProcessor
+            from transformers import AutoImageProcessor, AutoModelForImageClassification
+            
+            print("   [1/4] Loading image processor...")
+            processor = AutoImageProcessor.from_pretrained(model_id)
+            
+            print("   [2/4] Loading model...")
+            model = AutoModelForImageClassification.from_pretrained(model_id)
+            
+            print("   [3/4] Saving image processor...")
+            processor.save_pretrained(target_dir)
+            
+            print("   [4/4] Saving model...")
+            model.save_pretrained(target_dir)
+        else:
+            # Text classifier - use AutoTokenizer
+            from transformers import AutoTokenizer, AutoModelForSequenceClassification
+            
+            print("   [1/4] Loading tokenizer...")
+            tokenizer = AutoTokenizer.from_pretrained(model_id)
+            
+            print("   [2/4] Loading model...")
+            model = AutoModelForSequenceClassification.from_pretrained(model_id)
+            
+            print("   [3/4] Saving tokenizer...")
+            tokenizer.save_pretrained(target_dir)
+            
+            print("   [4/4] Saving model...")
+            model.save_pretrained(target_dir)
         
         print(f"   ✅ {name} downloaded successfully!")
         return True

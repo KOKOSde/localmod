@@ -1,9 +1,9 @@
 """API route definitions."""
 
 import time
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 
 from localmod import __version__
 from localmod.config import get_settings, Settings
@@ -17,6 +17,9 @@ from localmod.schemas import (
     HealthResponse,
     RedactRequest,
     RedactResponse,
+    ImageAnalyzeRequest,
+    ImageAnalyzeResponse,
+    ImageClassifierType,
 )
 from localmod.api.app import get_pipeline
 from localmod.pipeline import SafetyPipeline
@@ -207,4 +210,123 @@ async def root():
         "docs": "/docs",
     }
 
+
+# ============================================================================
+# Image Moderation Endpoints
+# ============================================================================
+
+# Global image classifier instance (lazy loaded)
+_image_classifier = None
+
+
+def get_image_classifier():
+    """Get or create the image NSFW classifier."""
+    global _image_classifier
+    if _image_classifier is None:
+        from localmod.classifiers.nsfw_image import ImageNSFWClassifier
+        _image_classifier = ImageNSFWClassifier()
+    return _image_classifier
+
+
+@router.post("/analyze/image", response_model=ImageAnalyzeResponse, tags=["Image Moderation"])
+async def analyze_image_url(request: ImageAnalyzeRequest):
+    """
+    Analyze an image from URL for NSFW content.
+    
+    Supports common image formats: JPEG, PNG, GIF, WebP.
+    """
+    start_time = time.perf_counter()
+    
+    classifier = get_image_classifier()
+    
+    try:
+        result = classifier.predict(request.image_url)
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to analyze image: {str(e)}"
+        )
+    
+    processing_time = (time.perf_counter() - start_time) * 1000
+    
+    summary = ""
+    if result.flagged:
+        summary = f"Image flagged for: {', '.join(result.categories)} ({result.severity.value})"
+    else:
+        summary = "Image passed safety check"
+    
+    return ImageAnalyzeResponse(
+        flagged=result.flagged,
+        results=[ClassifierResult(**result.to_dict())],
+        summary=summary,
+        processing_time_ms=processing_time,
+    )
+
+
+@router.post("/analyze/image/upload", response_model=ImageAnalyzeResponse, tags=["Image Moderation"])
+async def analyze_image_upload(file: UploadFile = File(...)):
+    """
+    Analyze an uploaded image for NSFW content.
+    
+    Supports common image formats: JPEG, PNG, GIF, WebP.
+    Maximum file size: 10MB.
+    """
+    start_time = time.perf_counter()
+    
+    # Validate file type
+    if file.content_type not in ["image/jpeg", "image/png", "image/gif", "image/webp"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported image type: {file.content_type}. Supported: JPEG, PNG, GIF, WebP"
+        )
+    
+    # Read file content
+    content = await file.read()
+    
+    # Check file size (10MB max)
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(
+            status_code=400,
+            detail="Image file too large. Maximum size: 10MB"
+        )
+    
+    classifier = get_image_classifier()
+    
+    try:
+        result = classifier.predict(content)
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to analyze image: {str(e)}"
+        )
+    
+    processing_time = (time.perf_counter() - start_time) * 1000
+    
+    summary = ""
+    if result.flagged:
+        summary = f"Image flagged for: {', '.join(result.categories)} ({result.severity.value})"
+    else:
+        summary = "Image passed safety check"
+    
+    return ImageAnalyzeResponse(
+        flagged=result.flagged,
+        results=[ClassifierResult(**result.to_dict())],
+        summary=summary,
+        processing_time_ms=processing_time,
+    )
+
+
+@router.get("/classifiers/image", tags=["System"])
+async def list_image_classifiers():
+    """List available image classifiers."""
+    from localmod.classifiers import IMAGE_CLASSIFIER_REGISTRY
+    
+    return {
+        name: {
+            "name": cls.name,
+            "version": cls.version,
+            "description": cls.__doc__.strip().split('\n')[0] if cls.__doc__ else "",
+        }
+        for name, cls in IMAGE_CLASSIFIER_REGISTRY.items()
+    }
 

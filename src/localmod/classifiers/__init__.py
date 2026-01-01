@@ -7,6 +7,7 @@ from localmod.classifiers.pii import PIIDetector
 from localmod.classifiers.prompt_injection import PromptInjectionDetector
 from localmod.classifiers.spam import SpamClassifier
 from localmod.classifiers.nsfw import NSFWClassifier
+from localmod.classifiers.nsfw_image import ImageNSFWClassifier
 from localmod.models.base import BaseClassifier, ClassificationResult, Severity
 
 __all__ = [
@@ -15,19 +16,27 @@ __all__ = [
     "PromptInjectionDetector",
     "SpamClassifier",
     "NSFWClassifier",
+    "ImageNSFWClassifier",
     "BaseClassifier",
     "ClassificationResult",
     "Severity",
     "CLASSIFIER_REGISTRY",
+    "IMAGE_CLASSIFIER_REGISTRY",
     "get_classifier",
 ]
 
+# Text classifiers
 CLASSIFIER_REGISTRY: Dict[str, Type[BaseClassifier]] = {
     "toxicity": ToxicityClassifier,
     "pii": PIIDetector,
     "prompt_injection": PromptInjectionDetector,
     "spam": SpamClassifier,
     "nsfw": NSFWClassifier,
+}
+
+# Image classifiers
+IMAGE_CLASSIFIER_REGISTRY: Dict[str, Type[BaseClassifier]] = {
+    "nsfw_image": ImageNSFWClassifier,
 }
 
 

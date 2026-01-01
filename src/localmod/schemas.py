@@ -15,6 +15,12 @@ class ClassifierType(str, Enum):
     ALL = "all"
 
 
+class ImageClassifierType(str, Enum):
+    """Available image classifier types."""
+    NSFW_IMAGE = "nsfw_image"
+    ALL = "all"
+
+
 class AnalyzeRequest(BaseModel):
     """Request model for content analysis."""
     text: str = Field(..., min_length=1, max_length=10000, description="Text to analyze")
@@ -95,4 +101,21 @@ class RedactResponse(BaseModel):
     original_length: int
     redacted_text: str
     redactions: List[Dict[str, Any]]
+    processing_time_ms: float
+
+
+class ImageAnalyzeRequest(BaseModel):
+    """Request model for image analysis via URL."""
+    image_url: str = Field(..., description="URL of the image to analyze")
+    classifiers: List[ImageClassifierType] = Field(
+        default=[ImageClassifierType.ALL],
+        description="Which image classifiers to run"
+    )
+
+
+class ImageAnalyzeResponse(BaseModel):
+    """Response model for image analysis."""
+    flagged: bool = Field(description="True if ANY classifier flagged the image")
+    results: List[ClassifierResult]
+    summary: str = Field(description="Human-readable summary")
     processing_time_ms: float

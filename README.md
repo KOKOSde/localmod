@@ -45,7 +45,7 @@ git clone https://github.com/KOKOSde/localmod.git
 cd localmod
 pip install -e .
 
-# Download ML models (~3GB)
+# Download ML models (~3.5GB - includes image model)
 python scripts/download_models.py
 ```
 
@@ -90,13 +90,23 @@ docker run -p 8000:8000 localmod:latest
 
 ## Classifiers
 
+### Text Moderation
+
 | Classifier | Detects | Model |
 |------------|---------|-------|
 | **PII** | Emails, phones, SSNs, credit cards | Regex + Validation |
 | **Toxicity** | Hate speech, harassment, threats | Weighted Ensemble (4 models) |
 | **Prompt Injection** | LLM jailbreaks, instruction override | DeBERTa |
 | **Spam** | Promotional content, scams | RoBERTa |
-| **NSFW** | Sexual content, adult themes | NSFW Classifier |
+| **NSFW Text** | Sexual content, adult themes | NSFW Classifier |
+
+### Image Moderation 🆕
+
+| Classifier | Detects | Model |
+|------------|---------|-------|
+| **NSFW Image** | Explicit/adult images | [Falconsai/nsfw_image_detection](https://huggingface.co/Falconsai/nsfw_image_detection) (ViT) |
+
+*71M+ downloads on HuggingFace • Apache 2.0 license*
 
 ### Toxicity Ensemble
 
@@ -111,30 +121,59 @@ docker run -p 8000:8000 localmod:latest
 
 ## API Endpoints
 
+### Text Moderation
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/health` | GET | Health check |
-| `/classifiers` | GET | List available classifiers |
 | `/analyze` | POST | Analyze single text |
 | `/analyze/batch` | POST | Analyze multiple texts |
 | `/redact` | POST | Redact PII from text |
 
-### Example Response
+### Image Moderation 🆕
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/analyze/image` | POST | Analyze image from URL |
+| `/analyze/image/upload` | POST | Analyze uploaded image file |
+
+### System
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check |
+| `/classifiers` | GET | List text classifiers |
+| `/classifiers/image` | GET | List image classifiers |
+
+### Example: Text Analysis
 
 ```json
+POST /analyze
+{
+  "text": "You are an idiot!",
+  "classifiers": ["toxicity"]
+}
+
+Response:
 {
   "flagged": true,
-  "results": [
-    {
-      "classifier": "toxicity",
-      "flagged": true,
-      "confidence": 0.72,
-      "severity": "high",
-      "categories": ["toxic"]
-    }
-  ],
-  "summary": "Content flagged for: toxicity (high)",
+  "results": [{"classifier": "toxicity", "flagged": true, "confidence": 0.72, "severity": "high"}],
   "processing_time_ms": 85.3
+}
+```
+
+### Example: Image Analysis 🆕
+
+```json
+POST /analyze/image
+{
+  "image_url": "https://example.com/image.jpg"
+}
+
+Response:
+{
+  "flagged": false,
+  "results": [{"classifier": "nsfw_image", "flagged": false, "confidence": 0.02, "severity": "none"}],
+  "processing_time_ms": 120.5
 }
 ```
 
@@ -178,8 +217,9 @@ docker run -p 8000:8000 \
 | Classifier | CPU Latency | GPU Latency | Memory |
 |------------|-------------|-------------|--------|
 | PII (regex) | <1ms | <1ms | Minimal |
-| Single ML model | ~50-200ms | ~10-30ms | ~1GB |
+| Single ML model (text) | ~50-200ms | ~10-30ms | ~1GB |
 | Toxicity ensemble (4 models) | ~200-500ms | ~30-80ms | ~3GB |
+| NSFW Image (ViT) | ~100-300ms | ~20-50ms | ~500MB |
 
 *Performance varies by hardware. GPU recommended for production workloads.*
 
