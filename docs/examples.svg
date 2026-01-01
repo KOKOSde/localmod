@@ -152,9 +152,7 @@
   <rect x="680" y="370" width="171" height="8" rx="4" fill="#ef4444"/>
   <text x="770" y="398" text-anchor="middle" fill="#f87171" font-family="monospace" font-size="10" font-weight="700">95% confidence</text>
   
-  <!-- NEW badge -->
-  <rect x="855" y="360" width="35" height="16" rx="4" fill="#22c55e"/>
-  <text x="872" y="372" text-anchor="middle" fill="#fff" font-family="system-ui" font-size="8" font-weight="700">NEW</text>
+
   
   <!-- ==================== ROW 6: SAFE IMAGE ==================== -->
   
