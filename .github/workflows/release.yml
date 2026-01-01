@@ -38,6 +38,8 @@ jobs:
   docker-release:
     runs-on: ubuntu-latest
     needs: release
+    env:
+      HAS_DOCKER_CREDS: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -46,22 +48,36 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
-        if: github.event_name != 'pull_request'
+        id: docker-login
         uses: docker/login-action@v3
+        continue-on-error: true
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Check login status
+        id: check-login
+        run: |
+          if [ "${{ steps.docker-login.outcome }}" == "success" ]; then
+            echo "logged_in=true" >> $GITHUB_OUTPUT
+            echo "✅ Docker Hub login successful"
+          else
+            echo "logged_in=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Docker Hub login failed or credentials not configured - skipping push"
+          fi
+
       - name: Extract version from tag
+        if: steps.check-login.outputs.logged_in == 'true'
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Build and push CPU image
+        if: steps.check-login.outputs.logged_in == 'true'
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./docker/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: |
             localmod/localmod:latest
             localmod/localmod:${{ steps.version.outputs.VERSION }}
@@ -69,15 +85,22 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build and push GPU image
+        if: steps.check-login.outputs.logged_in == 'true'
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./docker/Dockerfile.gpu
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: |
             localmod/localmod:gpu
             localmod/localmod:${{ steps.version.outputs.VERSION }}-gpu
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-
+      - name: Summary
+        run: |
+          if [ "${{ steps.check-login.outputs.logged_in }}" == "true" ]; then
+            echo "✅ Docker images pushed successfully"
+          else
+            echo "ℹ️ Docker push skipped - configure DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets to enable"
+          fi
