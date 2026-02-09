@@ -38,6 +38,30 @@ Benchmarked using [CHI 2025 "Lost in Moderation"](https://arxiv.org/html/2503.01
 
 ---
 
+### Spam Detection
+
+**Positive class (1) = spam (should be flagged).** Precision reflects false positives; recall reflects false negatives.
+
+| System | Balanced Accuracy | Precision | Recall | F1 | FP | FN | n | Dataset | Eval |
+|--------|------------------:|----------:|-------:|---:|---:|---:|---:|---------|------|
+| **LocalMod** | **0.9988** | **0.9861** | **1.0000** | **0.9930** | **1** | **0** | 500 | [UCI SMS Spam Collection](https://archive.ics.uci.edu/ml/datasets/sms+spam+collection) (`ucirvine/sms_spam`, train) | `evaluation/chi2025_benchmark.py --task spam --samples 500` |
+
+### Prompt Injection Detection
+
+**Positive class (1) = injection (should be flagged).** These numbers are the **overall** metrics across ProtectAI validation subsets (with per-subset sample caps).
+
+| System | Balanced Accuracy | Precision | Recall | F1 | FP | FN | n | Dataset | Eval |
+|--------|------------------:|----------:|-------:|---:|---:|---:|---:|---------|------|
+| **LocalMod** | **0.815** | **0.657** | **0.932** | **0.771** | **199** | **28** | 1069 | `protectai/prompt-injection-validation` (subset-capped) | `evaluation/chi2025_benchmark.py --task prompt_injection --samples 200` |
+
+### PII Detection
+
+**Positive class (1) = contains PII (should be flagged).** This is a **synthetic sanity-check** benchmark (not a public curated dataset).
+
+| System | Balanced Accuracy | Precision | Recall | F1 | FP | FN | n | Dataset | Eval |
+|--------|------------------:|----------:|-------:|---:|---:|---:|---:|---------|------|
+| **LocalMod** | **1.0000** | **1.0000** | **1.0000** | **1.0000** | **0** | **0** | 2000 | `synthetic_pii_v1` (balanced) | `evaluation/chi2025_benchmark.py --task pii --samples 2000` |
+
 ## Installation
 
 ```bash
