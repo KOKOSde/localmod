@@ -188,6 +188,52 @@ docker run -p 8000:8000 -v localmod-cache:/home/localmod/.cache localmod:latest
 
 ---
 
+## Benchmarks (False Positives vs False Negatives)
+
+All metrics below treat the **positive class (1)** as “content that should be flagged”.
+
+- **Precision**: when we flag, how often we’re correct (high precision = fewer **false positives**)
+- **Recall**: how much harmful content we catch (high recall = fewer **false negatives**)
+- **FP / FN**: raw error counts (easier to sanity-check than a single score)
+
+### Quick reproduction commands
+
+Run from the repo root (note: these benchmarks require `PYTHONPATH=src` if not installed as a package):
+
+```bash
+# Spam (UCI SMS Spam Collection) - quick run
+PYTHONPATH=src python3 evaluation/chi2025_benchmark.py --task spam --samples 500
+
+# Prompt injection (`S-Labs/prompt-injection-dataset`) - quick run
+PYTHONPATH=src python3 evaluation/chi2025_benchmark.py --task prompt_injection --threshold 0.1
+
+# NSFW text (proxy: sexting vs news) - quick run
+PYTHONPATH=src python3 evaluation/chi2025_benchmark.py --task nsfw_text --samples 600 --threshold 0.6
+
+# NSFW image (proxy: x1101/nsfw vs CIFAR-10) - quick run
+PYTHONPATH=src python3 evaluation/chi2025_benchmark.py --task nsfw_image --samples 80
+
+# PII (synthetic labeled set; no model downloads required)
+PYTHONPATH=src python3 evaluation/chi2025_benchmark.py --task pii --samples 2000
+
+# Toxicity (CHI 2025 methodology) - full run (can take ~10-30 minutes on CPU)
+PYTHONPATH=src python3 evaluation/chi2025_benchmark.py --task toxicity
+```
+
+### Results summary
+
+| Feature | System | Precision | Recall | F1 | FP | FN | n | Dataset | Eval accuracy (balanced acc) |
+|---|---|---:|---:|---:|---:|---:|---:|---|---:|
+| **PII** | LocalMod | 1.0000 | 1.0000 | 1.0000 | 0 | 0 | 2000 | `synthetic_pii_v1` (balanced) | 1.0000 |
+| **Toxicity** | LocalMod | 0.6007 | 0.8373 | 0.6973 | 1213 | 355 | 5924 | HateXplain (1924) + Civil Comments (2000) + SBIC (2000); **macro-avg** P/R/F1, summed FP/FN | 0.6500 |
+| **Prompt Injection** | LocalMod | 0.9324 | 0.8525 | 0.8907 | 65 | 155 | 2101 | `S-Labs/prompt-injection-dataset` (test, threshold=0.10) | 0.8953 |
+| **Spam** | LocalMod | 0.9861 | 1.0000 | 0.9930 | 1 | 0 | 500 | `ucirvine/sms_spam` (train) | 0.9988 |
+| **NSFW Text** | LocalMod | 0.6034 | 0.9533 | 0.7390 | 188 | 14 | 600 | Proxy: `Maxx0/Texting_sex` (NSFW) vs `ag_news` (SFW), balanced (threshold=0.60) | 0.6633 |
+| **NSFW Image** | LocalMod | 1.0000 | 0.9500 | 0.9744 | 0 | 2 | 80 | Proxy: `x1101/nsfw` (pos) vs `cifar10` (neg), balanced | 0.9750 |
+
+Notes:
+- Toxicity metrics above come from running the full CHI-style benchmark in this repo; “Eval accuracy” is the **macro average balanced accuracy** across HateXplain, Civil Comments, and SBIC.
+
 ## Troubleshooting
 
 ### "Module not found" error

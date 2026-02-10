@@ -57,7 +57,12 @@ class ImageNSFWClassifier(BaseClassifier):
         model_dir = os.path.expanduser(model_dir)
         local_path = os.path.join(model_dir, "nsfw_image")
         
-        if os.path.exists(local_path) and os.path.isdir(local_path):
+        # Only use the local path if it actually contains model artifacts.
+        # (In some environments the directory may exist but be empty/incomplete.)
+        required_any = ("config.json", "preprocessor_config.json", "model.safetensors", "pytorch_model.bin")
+        if os.path.exists(local_path) and os.path.isdir(local_path) and any(
+            os.path.exists(os.path.join(local_path, f)) for f in required_any
+        ):
             model_path = local_path
         else:
             model_path = self.MODEL_ID

@@ -7,6 +7,7 @@ import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from localmod.models.base import BaseClassifier, ClassificationResult, Severity
+from localmod.models.paths import get_classifier_model_path, get_transformers_kwargs
 
 
 class PromptInjectionDetector(BaseClassifier):
@@ -63,10 +64,8 @@ class PromptInjectionDetector(BaseClassifier):
         ],
     }
     
-    # ML model for semantic detection
-    # deepset model has pytorch format compatible with older transformers
+    # HF model id (fallback only); prefer LocalMod cached model path when available.
     MODEL_NAME = "deepset/deberta-v3-base-injection"
-    # Alternative: "protectai/deberta-v3-base-prompt-injection-v2" (safetensors, needs newer transformers)
 
     def __init__(
         self,
@@ -89,10 +88,12 @@ class PromptInjectionDetector(BaseClassifier):
         # Load ML model if enabled
         if self.use_ml_model:
             try:
-                self._tokenizer = AutoTokenizer.from_pretrained(self.MODEL_NAME)
-                self._model = AutoModelForSequenceClassification.from_pretrained(
-                    self.MODEL_NAME
-                )
+                model_path = get_classifier_model_path("prompt_injection")
+                kwargs = get_transformers_kwargs()
+                # The locally cached DeBERTa tokenizer is SentencePiece-based and may not include
+                # the files required for a fast tokenizer; prefer the slow tokenizer for robustness.
+                self._tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False, **kwargs)
+                self._model = AutoModelForSequenceClassification.from_pretrained(model_path, **kwargs)
                 self._model.to(self._device)
                 self._model.eval()
             except Exception:
