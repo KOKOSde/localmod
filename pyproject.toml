@@ -29,7 +29,7 @@ classifiers = [
 dependencies = [
     "torch>=1.10.0",
     "transformers>=4.10.0",
-    "fastapi>=0.65.0",
+    "fastapi>=0.128.8",
     "uvicorn[standard]>=0.15.0",
     "pydantic>=1.8.0",
     "pydantic-settings>=2.0.0;python_version>='3.8'",
