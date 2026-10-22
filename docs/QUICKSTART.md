@@ -225,14 +225,14 @@ PYTHONPATH=src python3 evaluation/chi2025_benchmark.py --task toxicity
 | Feature | System | Precision | Recall | F1 | FP | FN | n | Dataset | Eval accuracy (balanced acc) |
 |---|---|---:|---:|---:|---:|---:|---:|---|---:|
 | **PII** | LocalMod | 1.0000 | 1.0000 | 1.0000 | 0 | 0 | 2000 | `synthetic_pii_v1` (balanced) | 1.0000 |
-| **Toxicity** | LocalMod | 0.6007 | 0.8373 | 0.6973 | 1213 | 355 | 5924 | HateXplain (1924) + Civil Comments (2000) + SBIC (2000); **macro-avg** P/R/F1, summed FP/FN | 0.6500 |
+| **Toxicity** | LocalMod | — | — | 0.75 | — | — | 5924 | HateXplain (1924) + Civil Comments (2000) + SBIC (2000), threshold 0.17; **macro-avg** across datasets ([results](../evaluation/chi2025_benchmark_results.json)) | 0.75 |
 | **Prompt Injection** | LocalMod | 0.9324 | 0.8525 | 0.8907 | 65 | 155 | 2101 | `S-Labs/prompt-injection-dataset` (test, threshold=0.10) | 0.8953 |
 | **Spam** | LocalMod | 0.9861 | 1.0000 | 0.9930 | 1 | 0 | 500 | `ucirvine/sms_spam` (train) | 0.9988 |
 | **NSFW Text** | LocalMod | 0.6034 | 0.9533 | 0.7390 | 188 | 14 | 600 | Proxy: `Maxx0/Texting_sex` (NSFW) vs `ag_news` (SFW), balanced (threshold=0.60) | 0.6633 |
 | **NSFW Image** | LocalMod | 1.0000 | 0.9500 | 0.9744 | 0 | 2 | 80 | Proxy: `x1101/nsfw` (pos) vs `cifar10` (neg), balanced | 0.9750 |
 
 Notes:
-- Toxicity metrics above come from running the full CHI-style benchmark in this repo; “Eval accuracy” is the **macro average balanced accuracy** across HateXplain, Civil Comments, and SBIC.
+- Toxicity metrics above come from running the full CHI-style benchmark in this repo (`evaluation/chi2025_benchmark.py --task toxicity`); “Eval accuracy” is the **macro average balanced accuracy** across HateXplain (0.68), Civil Comments (0.78), and SBIC (0.79). Results are in `evaluation/chi2025_benchmark_results.json`, which records balanced accuracy and F1 only, so precision/recall/FP/FN are shown as —.
 
 ## Troubleshooting
 
