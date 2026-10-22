@@ -34,7 +34,7 @@ Benchmarked using [CHI 2025 "Lost in Moderation"](https://arxiv.org/html/2503.01
 | Feature | System | Precision | Recall | F1 | FP | FN | n | Dataset | Eval accuracy (balanced acc) |
 |---|---|---:|---:|---:|---:|---:|---:|---|---:|
 | **PII** | LocalMod | 1.0000 | 1.0000 | 1.0000 | 0 | 0 | 2000 | `synthetic_pii_v1` (balanced) | 1.0000 |
-| **Toxicity** | LocalMod | 0.6007 | 0.8373 | 0.6973 | 1213 | 355 | 5924 | HateXplain (1924) + Civil Comments (2000) + SBIC (2000); **macro-avg** P/R/F1, summed FP/FN | 0.6500 |
+| **Toxicity** | LocalMod | — | — | 0.75 | — | — | 5924 | HateXplain (1924) + Civil Comments (2000) + SBIC (2000), threshold 0.17; **macro-avg** across datasets ([results](evaluation/chi2025_benchmark_results.json)) | 0.75 |
 | **Prompt Injection** | LocalMod | 0.9324 | 0.8525 | 0.8907 | 65 | 155 | 2101 | `S-Labs/prompt-injection-dataset` (test, threshold=0.10) | 0.8953 |
 | **Spam** | LocalMod | 0.9861 | 1.0000 | 0.9930 | 1 | 0 | 500 | `ucirvine/sms_spam` (train) | 0.9988 |
 | **NSFW Text** | LocalMod | 0.6034 | 0.9533 | 0.7390 | 188 | 14 | 600 | Proxy: `Maxx0/Texting_sex` (NSFW) vs `ag_news` (SFW), balanced (threshold=0.60) | 0.6633 |
