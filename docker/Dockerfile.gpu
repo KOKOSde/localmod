@@ -1,7 +1,7 @@
 # LocalMod GPU Dockerfile
 # Based on PyTorch CUDA image
 
-FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime AS runtime
+FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime AS runtime
 
 WORKDIR /app
 
